@@ -2,10 +2,11 @@
 
 using namespace std;
 
-LightSource::LightSource()
+LightSource::LightSource(const Composition *parent) :
+  Ball(parent)
 {
   _radius = 0;
-  _invisible = true;
+  _visible = false;
 }
 
 void LightSource::parse(const string &command, istream &in)
@@ -15,7 +16,7 @@ void LightSource::parse(const string &command, istream &in)
 
   if(command == "radius") {
     in >> _radius;
-    _invisible = false;
+    _visible = true;
   }
   else if(command == "color") {
     in >> c;

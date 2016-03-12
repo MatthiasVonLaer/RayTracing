@@ -9,8 +9,8 @@
 class LightSource : public Ball
 {
 public:
-  LightSource();
-  void parse(const std::string &command, std::istream &in);
+  LightSource(const Composition *parent);
+  virtual void parse(const std::string &command, std::istream &in);
 
   const LightBeam& beam() const      {return _beam;}
 

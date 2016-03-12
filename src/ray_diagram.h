@@ -9,13 +9,15 @@
 #include "ray.h"
 #include "vector.h"
 
+class Camera;
+
 class RayDiagram
 {
 public:
   RayDiagram();
   ~RayDiagram();
-  void parse(const std::string &line);
-  void init(const Vector &position, const Vector &viewing_direction, const Vector &top_direction, int res_x, int res_y);
+  void parse(const std::string &command, std::istream &stream);
+  void init(const Camera &camera);
 
   void set_pixel_in_progress(int x, int y);
   void add(const Ray &ray, double distance, double ratio);

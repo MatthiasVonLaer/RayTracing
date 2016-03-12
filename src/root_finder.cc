@@ -6,10 +6,12 @@
 
 using namespace std;
 
-RootFinder::RootFinder()
+RootFinder::RootFinder() :
+  _tolerance(1e-14),
+  _min_step(0.1),
+  _newton_steps(15),
+  _nested_intervals_steps(15)
 {
-  _tolerance = 1e-14;
-  _min_step = 0.1;
 }
 
 bool RootFinder::find(double (*f)(double), double (*df)(double), double lipschitz, double min, double max, double &result) const
@@ -34,10 +36,10 @@ bool RootFinder::find(double (*f)(double), double (*df)(double), double lipschit
     f1 = f(t1);
 
     if(sign_start*f1 < _tolerance) {
-      if(newton(f, df, t0, t1, 20, result)) {
+      if(newton(f, df, t0, t1, _newton_steps, result)) {
         return true;
       }
-      if(nested_intervals(f, t0, t1, 15, result)) {
+      if(nested_intervals(f, t0, t1, _nested_intervals_steps, result)) {
         return true;
       }
 

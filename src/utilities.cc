@@ -37,14 +37,6 @@ bool is_smaller_or_equal(double a, double b, double epsilon)
   return b - a >= -epsilon;// * (fabs(a) < fabs(b) ? fabs(b) : fabs(a));
 }
 
-double round_down(double d)
-{
-  if(d >= 0)
-    return int(d);
-  else
-    return int(d-1);
-}
-
 double f_rand(double f_min, double f_max)
 {
   double f = (double)rand() / RAND_MAX;

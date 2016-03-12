@@ -4,7 +4,8 @@
 
 using namespace std;
 
-PlaneShape::PlaneShape() :
+PlaneShape::PlaneShape(const Composition *parent) :
+  Shape(parent),
   _image(0),
   _im_width(0),
   _im_height(0)
@@ -83,8 +84,8 @@ Color PlaneShape::get_color(const Vector &intersection_point) const
     else {
       Vector v = global_to_local_point(intersection_point);
 
-      int x = (v.x() - round_down(v.x())) * (_image->width()-1);
-      int y = (v.z() - round_down(v.z())) * (_image->height()-1);
+      int x = (v.x() - floor(v.x())) * (_image->width()-1);
+      int y = (v.z() - floor(v.z())) * (_image->height()-1);
 
       return _image->pixel(x, y);
     }

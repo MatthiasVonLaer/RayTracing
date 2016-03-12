@@ -1,14 +1,15 @@
 #pragma once
+#include <complex>
 #include <string>
 
 const double PI = 3.14159265;
+const std::complex<double> I(0.0, 1.0);
 
 bool is_equal(double d1, double d2, double epsilon=1.e-13);
 bool is_greater(double d1, double d2, double epsilon=1.e-13);
 bool is_greater_or_equal(double d1, double d2, double epsilon=1.e-13);
 bool is_smaller(double d1, double d2, double epsilon=1.e-13);
 bool is_smaller_or_equal(double d1, double d2, double epsilon=1.e-13);
-double round_down(double d);
 double f_rand(double f_min, double f_max);
 long get_time();
 bool file_exists(const std::string &path);

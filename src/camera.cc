@@ -6,25 +6,25 @@
 
 #include "camera.h"
 #include "mpi_manager.h"
+#include "polygon.h"
 #include "utilities.h"
 
 using namespace std;
 
-Camera::Camera() :
+Camera::Camera(Display &display) :
   _output_filename   ("raytracer.jpg"),
   _resolution_x      (750),
   _resolution_y      (500),
 
-  _focal_length      (35), //35mm lens
-  _film_size_diagonal(sqrt(36*36 + 24*24)), //full-frame film 36mm x 24mm
+  _film_size_diagonal(sqrt(.036*.036 + .024*.024)), //full-frame film 36mm x 24mm
   _crop_factor       (1),
 
   _exposure_range    (-1),
   _exposure          (0),
   _gamma             (1),
 
-  _aperture          (5.6),
   _depth_of_field    (false),
+  _diffraction       (false),
 
   _colorization      ("rgb"),
   _vignette          (0),
@@ -33,152 +33,93 @@ Camera::Camera() :
   _viewing_direction (Vector(0, 1, 0)),
   _top_direction     (Vector(0, 0, 1)),
 
-  _summary_time(0),
-  _summary_mpix(0),
-  _summary_pics(0),
-
-  _display_progress(true),
-  _display_summary(true)
+  _display(display)
 {
 }
 
-void Camera::parse(istream &in)
+void Camera::parse(const string &command, istream &stream)
 {
-  string command;
-  string rest_of_line;
-
-  while(in >> command && getline(in, rest_of_line)) {
-    display_progress("Loading", 0);
-    stringstream stream(rest_of_line);
-
-    if(command.size() >= 2 && command.substr(0,2) == "//") {
-      continue;
-    }
-    else if(command == "camera") {
-
-      string command2;
-      stream >> command2;
-
-      if(command2 == "aperture") {
-        char c;
-        stream >> c;
-        parser_assert_command(string(1, c), "f");
-        stream >> c;
-        parser_assert_command(string(1, c), "/");
-        stream >> _aperture;
-      }
-      else if(command2 == "colorization") {
-        stream >> _colorization;
-      }
-      else if(command2 == "exposure_range") {
-        stream >> _exposure_range;
-      }
-      else if(command2 == "crop_factor") {
-        stream >> _crop_factor;
-      }
-      else if(command2 == "exposure") {
-        stream >> _exposure;
-      }
-      else if(command2 == "focal_length") {
-        stream >> _focal_length;
-      }
-      else if(command2 == "focus") {
-        stream >> _focus;
-        _depth_of_field = true;
-      }
-      else if(command2 == "gamma") {
-        stream >> _gamma;
-      }
-      else if(command2 == "noise") {
-        stream >> _noise;
-      }
-      else if(command2 == "position") {
-        stream >> _position;
-      }
-      else if(command2 == "resolution") {
-        stream >> _resolution_x >> _resolution_y;
-      }
-      else if(command2 == "take_picture") {
-        take_picture();
-      }
-      else if(command2 == "top_direction") {
-        stream >> _top_direction;
-      }
-      else if(command2 == "output_filename") {
-        stream >> _output_filename;
-      }
-      else if(command2 == "viewing_direction") {
-        stream >> _viewing_direction;
-      }
-      else if(command2 == "vignette") {
-        stream >> _vignette;
-      }
-      else {
-        parser_error_unknown_command(command2);
-      }
-
-    }
-    else if(command == "display") {
-      string command2;
-      stream >> command2;
-      if(command2 == "progress") {
-        stream >> _display_progress;
-      }
-      else if(command2 == "summary") {
-        stream >> _display_summary;
-      }
-      else {
-        parser_error_unknown_command(command2);
-      }
-    }
-    else if(command == "ray_diagram") {
-      _ray_diagram.parse(rest_of_line);
-    }
-    else if(command == "quit") {
-      break;
-    }
-    else {
-      if(mpi.size() > 1) {
-        for(int i=1; i<mpi.size(); i++) {
-          mpi.send_order(ORDER_PARSE, i);
-          mpi.send_string(command + rest_of_line, i);
-        }
-      }
-      else {
-        _scene.parse(command + rest_of_line);
-      }
-    }
+  if(command == "aperture") {
+    char c;
+    stream >> c;
+    parser_assert_command(string(1, c), "f");
+    stream >> c;
+    parser_assert_command(string(1, c), "/");
+    double aperture;
+    stream >> aperture;
+    _lens.set_aperture(aperture);
   }
-
-  //quit
-  display_progress("Done", 1);
-  cout << endl;
-
-  if(_display_summary) {
-    display_summary();
+  else if(command == "aperture_blades") {
+    int blades;
+    stream >> blades;
+    _lens.set_blades(blades);
   }
-
-  for(int i=1; i<mpi.size(); i++) {
-    mpi.send_order(ORDER_QUIT, i);
+  else if(command == "colorization") {
+    stream >> _colorization;
+  }
+  else if(command == "diffraction") {
+    stream >> _diffraction;
+  }
+  else if(command == "exposure_range") {
+    stream >> _exposure_range;
+  }
+  else if(command == "crop_factor") {
+    stream >> _crop_factor;
+  }
+  else if(command == "exposure") {
+    stream >> _exposure;
+  }
+  else if(command == "focal_length") {
+    double focal_length;
+    stream >> focal_length;
+    _lens.set_focal_length(focal_length / 1000);
+  }
+  else if(command == "focus") {
+    double focus;
+    stream >> focus;
+    _lens.set_focus(focus);
+    _depth_of_field = true;
+  }
+  else if(command == "gamma") {
+    stream >> _gamma;
+  }
+  else if(command == "noise") {
+    stream >> _noise;
+  }
+  else if(command == "position") {
+    stream >> _position;
+  }
+  else if(command == "resolution") {
+    stream >> _resolution_x >> _resolution_y;
+  }
+  else if(command == "top_direction") {
+    stream >> _top_direction;
+  }
+  else if(command == "output_filename") {
+    stream >> _output_filename;
+  }
+  else if(command == "viewing_direction") {
+    stream >> _viewing_direction;
+  }
+  else if(command == "vignette") {
+    stream >> _vignette;
+  }
+  else {
+    parser_error_unknown_command(command);
   }
 }
 
-void Camera::take_picture()
+void Camera::take_picture(const Scene *scene)
 {
-  long t0 = get_time();
+  _display.start_timer();
 
   rename_previous_output();
-  initialize();
-  shutter();
+  shutter(scene);
   develop();
   _film.save(_output_filename.c_str(), 0, 100);
-  if(_ray_diagram.enabled()) {
-    _ray_diagram.save();
-  }
 
-  _summary_time += 1.e-6 * (get_time() - t0);
-  _summary_mpix += 1.e-6 * _resolution_x * _resolution_y;
-  _summary_pics ++;
+  _display.stop_timer();
+  _display.add_mpix(_resolution_x * _resolution_y);
 }
 
 void Camera::rename_previous_output() const
@@ -234,51 +175,41 @@ void Camera::initialize()
 
   Vector right_direction = - (_top_direction ^ _viewing_direction).normalized();
 
-  _film_top_left_direction  = _viewing_direction * _focal_length;
+  _film_top_left_direction  = _viewing_direction * _lens.focal_length();
   _film_top_left_direction -= right_direction * (film_size_x / 2);
   _film_top_left_direction += _top_direction * (film_size_y / 2);
 
   _film_dx = right_direction * (film_size_x / (_resolution_x-1));
   _film_dy = -_top_direction * (film_size_y / (_resolution_y-1));
+}
 
-  //scene
-  if(_ray_diagram.enabled()) {
-    _ray_diagram.init(_position, _viewing_direction, _top_direction, _resolution_x, _resolution_y);
-    _scene.set_ray_diagram(&_ray_diagram);
-  }
+void Camera::shutter(const Scene *scene)
+{
   if(mpi.size() == 1) {
-    _scene.init();
+    for(int j=0; j<_resolution_y; j++) {
+      for(int i=0; i<_resolution_x; i++) {
+
+        _shutter_pixel_x = i;
+        _shutter_pixel_y = j;
+
+        Vector v = _film_top_left_direction + j*_film_dy + i*_film_dx;
+        _light_beams[i][j] = scene->raytracer(Ray(_position, v));
+
+      }
+      _display.progress("RayTracing", double(j)/_resolution_y);
+    }
   }
+
   else {
     for(int i=1; i<mpi.size(); i++) {
-      mpi.send_order(ORDER_INIT, i);
+      mpi.send_order(ORDER_CAMERA_DATA, i);
       mpi.send_int(_resolution_x, i);
       mpi.send_vector(_position, i);
       mpi.send_vector(_film_top_left_direction, i);
       mpi.send_vector(_film_dx, i);
       mpi.send_vector(_film_dy, i);
     }
-  }
-}
 
-void Camera::shutter()
-{
-  if(mpi.size() == 1) {
-    for(int j=0; j<_resolution_y; j++) {
-      for(int i=0; i<_resolution_x; i++) {
-
-        if(_ray_diagram.enabled()) {
-          _ray_diagram.set_pixel_in_progress(i, j);
-        }
-
-        Vector v = _film_top_left_direction + j*_film_dy + i*_film_dx;
-        _light_beams[i][j] = _scene.raytracer(Ray(_position, v));
-
-      }
-      display_progress("RayTracing", double(j)/_resolution_y);
-    }
-  }
-  else {
     vector<int> queue;
     for(int i=1; i<mpi.size(); i++) {
       queue.push_back(i);
@@ -292,7 +223,7 @@ void Camera::shutter()
         mpi.send_int(sent, queue[0]);
         queue.erase(queue.begin());
         sent++;
-        display_progress("RayTracing", double(sent)/_resolution_y);
+        _display.progress("RayTracing", double(sent)/_resolution_y);
       }
 
       if(received == _resolution_y) {
@@ -316,59 +247,88 @@ void Camera::shutter()
 
 void Camera::develop()
 {
-  double lum_max=0;
+  if(_diffraction) {
+    diffraction();
+  }
 
   if(_depth_of_field) {
-    // blur_diameter / | distance - _focus |  =  (_focal_length/_aperture) / _focus
-    // blur_diameter_on_film / blur_diameter  =  _focal_length / distance
-    const vector< vector< LightBeam > > beams_copy = _light_beams;
-    for(int i=0; i<_resolution_x; i++) {
-      for(int j=0; j<_resolution_y; j++) {
-        double distance = beams_copy[i][j].depth();
-        double blur_diameter = fabs(distance - _focus) * (_focal_length/1000) / _aperture / _focus;
-        double blur_diameter_on_film = blur_diameter * (_focal_length/1000) / distance;
-        int blur_radius_pixel = blur_diameter_on_film / (_film_dx.norm()/1000) / 2;
-
-        int N = 0;
-        _light_beams[i][j] = LightBeam();
-        for(int a = i - blur_radius_pixel; a <= i + blur_radius_pixel; a++) {
-          for(int b = j - blur_radius_pixel; b <= j + blur_radius_pixel; b++) {
-            if(a>=0 && b>=0 && a<_resolution_x && b<_resolution_y && (a-i)*(a-i)+(b-j)*(b-j) <= blur_radius_pixel*blur_radius_pixel) {
-              _light_beams[i][j] += beams_copy[a][b];
-              N++;
-            }
-          }
-        }
-        _light_beams[i][j] /= N;
-
-      }
-      display_progress("Depth of Field", double(i)/_resolution_x);
-    }
+    depth_of_field();
   }
 
   if(_colorization == "bw") {
-    for(int i=0; i<_resolution_x; i++) {
-      for(int j=0; j<_resolution_y; j++) {
-        double avg = (_light_beams[i][j].red() + _light_beams[i][j].green() + _light_beams[i][j].blue()) / 3; 
-        _light_beams[i][j] = LightBeam(avg, avg, avg);
-      }
-      display_progress("Black White", double(i)/_resolution_x);
-    }
+    black_white();
   }
 
   if(!is_equal(_vignette, 0)) {
-    double diag = sqrt( pow(_resolution_x, 2) + pow(_resolution_y, 2) );
-    for(int i=0; i<_resolution_x; i++) {
-      for(int j=0; j<_resolution_y; j++) {
-        double offset_i = i - _resolution_x / 2.;
-        double offset_j = j - _resolution_y / 2.;
-        double relative_offset = sqrt( pow(offset_i, 2) + pow(offset_j, 2) ) / (diag/2);
-        _light_beams[i][j] *= pow(2, _vignette * relative_offset);
-      }
-      display_progress("Vignette", double(i)/_resolution_x);
-    }
+    vignette();
   }
 
+  double lum_max = maximal_luminosity();
+
+  //calculate exposure range
+  double range_max = lum_max * pow(2, -_exposure);
+  double range_min;
+  if(_exposure_range < 0)
+    range_min = 0;
+  else
+    range_min = range_max * pow(2, - _exposure_range);
+
+
+  for(int i=0; i<_resolution_x; i++) {
+    for(int j=0; j<_resolution_y; j++) {
+      double faktor = 255 / lum_max;
+
+      _film.setPixel(i, j, qRgb(develop_beam(_light_beams[i][j].red()  , range_min, range_max),
+            develop_beam(_light_beams[i][j].green(), range_min, range_max),
+            develop_beam(_light_beams[i][j].blue() , range_min, range_max) ));
+    }
+    _display.progress("Develop", double(i)/_resolution_x);
+  }
+}
+
+void Camera::diffraction()
+{
+  double lum_max = maximal_luminosity();
+
+  vector< vector< complex<double> > > diffracted_beams;
+  diffracted_beams.resize(_resolution_x);
+  for(int i=0; i<_resolution_x; i++) {
+    diffracted_beams[i].resize(_resolution_y);
+    for(int j=0; j<_resolution_y; j++) {
+      diffracted_beams[i][j] = 0;
+    }
+  }
+  for(int i=0; i<_resolution_x; i++) {
+    _display.progress("Diffraction", double(i)/_resolution_x);
+    for(int j=0; j<_resolution_y; j++) {
+      if(_light_beams[i][j].luminosity() < .8 * lum_max) {
+        diffracted_beams[i][j] += _light_beams[i][j].luminosity();
+        continue;
+      }
+
+      int n = 50;
+      double ds = _film_dx.norm();
+      for(int a=-n; a<=n; a++) {
+        for(int b=-n; b<=n; b++) {
+          if(i+a>=0 && j+b>=0 && i+a<_resolution_x && j+b<_resolution_y) {
+            diffracted_beams[i+a][j+b] += _light_beams[i][j].luminosity() *_lens.diffraction_pattern(a*ds, b*ds);
+          }
+        }
+      }
+
+    }
+  }
+  for(int i=0; i<_resolution_x; i++) {
+    for(int j=0; j<_resolution_y; j++) {
+      double l = norm(diffracted_beams[i][j]);
+      _light_beams[i][j] = LightBeam(l, l, l);
+    }
+  }
+}
+
+double Camera::maximal_luminosity()
+{
+  double lum_max = 0;
   for(int i=0; i<_resolution_x; i++) {
     for(int j=0; j<_resolution_y; j++) {
       if(_light_beams[i][j].luminosity() > lum_max) {
@@ -376,92 +336,89 @@ void Camera::develop()
       }
     }
   }
+  return lum_max;
+}
 
-  //calculate exposure range
-  _range_max = lum_max * pow(2, -_exposure);
-  if(_exposure_range < 0)
-    _range_min = 0;
-  else
-    _range_min = _range_max * pow(2, - _exposure_range);
-  _range_abs = _range_max - _range_min;
-
-
+void Camera::depth_of_field()
+{
+  // blur_diameter / | distance - _focus |  =  (_focal_length/_aperture) / _focus
+  // blur_diameter_on_film / blur_diameter  =  _focal_length / distance
+  const vector< vector< LightBeam > > beams_copy = _light_beams;
   for(int i=0; i<_resolution_x; i++) {
+    _display.progress("Depth of Field", double(i)/_resolution_x);
     for(int j=0; j<_resolution_y; j++) {
-      double faktor = 255 / lum_max;
+      double blur_diameter = _lens.blur_diameter( beams_copy[i][j].depth() );
+      int blur_radius_pixel = blur_diameter / (_film_dx.norm()) / 2;
+      if(blur_radius_pixel < 0) {
+        cout << blur_radius_pixel << endl;
+        blur_radius_pixel = 0;
+      }
 
-      _film.setPixel(i, j, qRgb(develop_beam(_light_beams[i][j].red()  ),
-                                develop_beam(_light_beams[i][j].green()),
-                                develop_beam(_light_beams[i][j].blue() ) ));
+      int N = 0;
+      _light_beams[i][j] = LightBeam();
+      Polygon polygon = _lens.aperture_shape(blur_radius_pixel);
+      for(int n=0; n<polygon.size(); n++) {
+        int a = i+polygon.x(n);
+        int b = j+polygon.y(n);
+        if(a>=0 && b>=0 && a<_resolution_x && b<_resolution_y) {
+          _light_beams[i][j] += beams_copy[a][b];
+          N++;
+        }
+      }
+      _light_beams[i][j] /= N;
+
     }
-    display_progress("Develop", double(i)/_resolution_x);
   }
 }
 
-int Camera::develop_beam(double l)
+void Camera::black_white()
 {
-  double color_relative;
-
-  if(is_equal(_range_abs, 0)) {
-    color_relative = 0;
+  for(int i=0; i<_resolution_x; i++) {
+    _display.progress("Black White", double(i)/_resolution_x);
+    for(int j=100; j<_resolution_y; j++) {
+      double avg = (_light_beams[i][j].red() + _light_beams[i][j].green() + _light_beams[i][j].blue()) / 3; 
+      _light_beams[i][j] = LightBeam(avg, avg, avg);
+    }
   }
-  else if(l <= _range_min) {
-    color_relative = 0;
+}
+
+void Camera::vignette()
+{
+  double diag = sqrt( pow(_resolution_x, 2) + pow(_resolution_y, 2) );
+  for(int i=0; i<_resolution_x; i++) {
+    _display.progress("Vignette", double(i)/_resolution_x);
+    for(int j=0; j<_resolution_y; j++) {
+      double offset_i = i - _resolution_x / 2.;
+      double offset_j = j - _resolution_y / 2.;
+      double relative_offset = sqrt( pow(offset_i, 2) + pow(offset_j, 2) ) / (diag/2);
+      _light_beams[i][j] *= pow(2, _vignette * relative_offset);
+    }
+  }
+}
+
+
+int Camera::develop_beam(double l, double range_min, double range_max)
+{
+  double range_abs = range_max - range_min;
+  double color;
+
+  if(is_equal(range_abs, 0)) {
+    color = 0;
+  }
+  else if(l <= range_min) {
+    color = 0;
   }
   else {
-    color_relative = (l-_range_min) / _range_abs;
+    color = (l-range_min) / range_abs;
   }
 
   if(!is_equal(_noise, 0)) {
-    color_relative += f_rand(0, _noise/_range_max);
+    color += f_rand(0, _noise/range_max);
   }
 
-  if(color_relative > 1) {
-    color_relative = 1;
+  if(color > 1) {
+    color = 1;
   }
 
-  return 255 * pow(color_relative, _gamma);
+  return 255 * pow(color, _gamma);
 }
-
-void Camera::display_summary()
-{
-  cout.precision(2);
-  cout << "Pictures: " << _summary_pics << "     ";
-  cout << "Nodes: " << mpi.size() << "     ";
-  cout << "Total: " << _summary_mpix << " MPix     ";
-  cout << "Time: " << _summary_time << " s     ";
-  cout << "Speed: " << _summary_mpix/_summary_time << " MPix/s" << endl;
-}
-
-void Camera::display_progress(const string &name, double progress)
-{
-  static string _name;
-  static double _progress;
-  const int width_text = 30;
-  const int width_bar = 45;
-  //checking if display is necessary
-  if(!_display_progress)
-    return;
-  if(_name == name && is_greater(_progress + 1./width_bar, progress))
-    return;
-  _name = name;
-  _progress = progress;
-
-  cout << "\r" << name;
-  for(int i=name.size(); i<width_text; i++)
-    cout << ' ';
-  cout << '|';
-  for(int i=0; i<width_bar; i++) {
-    if(i < progress*width_bar)
-      cout << '-';
-    else
-      cout << ' ';
-  }
-  cout << '|';
-  if(progress > 0) {
-    cout << " " << int(progress * 100) << "%";
-  }
-  cout << "     ";
-  cout.flush();
-}
-

@@ -13,14 +13,14 @@
 class Scene
 {
 public:
-  Scene();
+  Scene(RayDiagram *diagram);
   ~Scene();
   LightBeam raytracer(const Ray &ray) const;
-  void parse(const std::string &line);
+  void parse(const std::string &line, const Composition *parent=0);
   void init();
-  void set_ray_diagram(RayDiagram *rd);
+
 private:
-  template<class T> void get_or_create_shape_and_parse(const std::string &shape_class, std::istream &in);
+  template<class T> void get_or_create_shape_and_parse(const std::string &shape_class, std::istream &in, const Composition *parent);
   void remove_shape(const std::string &name);
 
   LightBeam raytracer(const Ray &ray, const Shape *inside_shape, double ratio, int depth) const;
@@ -41,8 +41,11 @@ private:
 
   std::vector < Shape* > _shapes;
   std::vector < LightSource* > _lights;
+  std::vector < Composition* > _compositions;
 
   std::map < std::string, Shape* > _shapes_by_name;
 
   RayDiagram *_ray_diagram;
+
+  std::string _compositions_dir;
 };

@@ -5,7 +5,8 @@
 
 using namespace std;
 
-Slave::Slave()
+Slave::Slave() :
+  _scene(0)
 {
 }
 
@@ -15,10 +16,11 @@ void Slave::loop()
     Order order;
     mpi.recv_order(order);
     
-    if     (order == ORDER_QUIT)      break;
-    else if(order == ORDER_PARSE)     parse();
-    else if(order == ORDER_INIT)      init();
-    else if(order == ORDER_RAYTRACE)  raytrace();
+    if     (order == ORDER_QUIT)        break;
+    else if(order == ORDER_PARSE)       parse();
+    else if(order == ORDER_INIT)        init();
+    else if(order == ORDER_CAMERA_DATA) camera_data();
+    else if(order == ORDER_RAYTRACE)    raytrace();
   }
 }
 
@@ -32,13 +34,16 @@ void Slave::parse()
 
 void Slave::init()
 {
+  _scene.init();
+}
+
+void Slave::camera_data()
+{
   mpi.recv_int(_camera_resolution_x);
   mpi.recv_vector(_camera_position);
   mpi.recv_vector(_camera_film_top_left_direction);
   mpi.recv_vector(_camera_film_dx);
   mpi.recv_vector(_camera_film_dy);
-
-  _scene.init();
 }
 
 void Slave::raytrace()

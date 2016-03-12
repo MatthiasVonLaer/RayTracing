@@ -1,12 +1,13 @@
 #include <iostream>
+#include <sstream>
 #include <fstream>
 #include <stdlib.h>
 
-#include "camera.h"
+#include "controller.h"
 #include "mpi_manager.h"
 #include "slave.h"
 
-#include "math_expression.h"
+#include "lens.h"
 
 using namespace std;
 
@@ -14,21 +15,38 @@ MPI_Manager mpi;
 
 int main(int argc, char *argv[])
 {
+  if(argc == 1) {
+    Lens lens;
+    lens.set_blades(4);
+    lens.set_focal_length(.005);
+    lens.set_aperture(22);
+    double s = .00;
+    s /= sqrt(2);
+    cout << sqrt(norm(lens.diffraction_pattern(s, s))) << endl;
+    return 0;
+  }
+
   mpi.init(argc,argv);
 
   if(mpi.rank() == 0) {
 
-    if(argc != 2) {
-      display_error("Usage: " + string(argv[0]) + " [input_filename]");
-    }
+    Controller controller;
 
-    ifstream in(argv[1]);  
-    if(!in.is_open()) {
-      display_error("Can't open file " + string(argv[1]));
+    if(argc == 1) {
+      controller.parse(cin);
     }
-
-    Camera camera;
-    camera.parse(in);
+    else if(argc == 2) {
+      ifstream input(argv[1]);
+      if(input.is_open()) {
+        controller.parse(input);
+      }
+      else {
+        display_error("Can't open file " + string(argv[1]));
+      }
+    }
+    else {
+      display_error("Usage: Too many arguments.");
+    }
 
   }
   else {

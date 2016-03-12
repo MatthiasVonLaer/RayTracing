@@ -9,8 +9,7 @@
 class Vector
 {
 public:
-  Vector()                                         :_x(0), _y(0), _z(0) {}
-  Vector(double x_in, double y_in, double z_in)    :_x(x_in), _y(y_in), _z(z_in) {}
+  Vector(double x=0, double y=0, double z=0)       :_x(x), _y(y), _z(z) {}
   
   void set(double x_in, double y_in, double z_in)  {_x=x_in; _y=y_in; _z=z_in;}
   //void set_x(double a)                             {_x=a;}

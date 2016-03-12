@@ -5,8 +5,8 @@
 
 using namespace std;
 
-Ball::Ball():
-  Shape(),
+Ball::Ball(const Composition *parent):
+  Shape(parent),
   _radius(0),
   _image(0)
 {
@@ -18,9 +18,19 @@ Ball::~Ball()
     delete _image;
 }
 
-void Ball::init()
+double Ball::init_dx()
 {
-  _dx = _dy = _dz = _radius;
+  return _radius;
+}
+
+double Ball::init_dy()
+{
+  return _radius;
+}
+
+double Ball::init_dz()
+{
+  return _radius;
 }
 
 void Ball::parse(const string &command, istream &in)
@@ -40,10 +50,10 @@ void Ball::parse(const string &command, istream &in)
 
 bool Ball::intersect(const Ray &ray, Plane &plane) const
 {
-  // Solve:  (ray.origin + t * ray.direction - _position)^2 = _radius^2
+  // Solve:  (ray.origin + t * ray.direction - _origin)^2 = _radius^2
   // =>       t^2 + b*t + c = 0  with:
-  double b = 2 * (ray.direction() * (ray.origin() - _position));
-  double c = (ray.origin() - _position).norm2() - _radius*_radius;
+  double b = 2 * (ray.direction() * (ray.origin() - origin()));
+  double c = (ray.origin() - origin()).norm2() - _radius*_radius;
 
   if(b*b-4*c < 0) {
     return false;
@@ -56,14 +66,14 @@ bool Ball::intersect(const Ray &ray, Plane &plane) const
     if( is_greater(x1, 0) ) 
     {
       Vector p = ray.origin() + ray.direction() * x1;
-      Vector n = p - _position;
+      Vector n = p - origin();
       plane = Plane(p, n);
       return true;
     }
     else if( is_greater(x2, 0) )
     {
       Vector p = ray.origin() + ray.direction() * x2;
-      Vector n = p - _position;
+      Vector n = p - origin();
       plane = Plane(p, n);
       return true;
     }
@@ -75,7 +85,7 @@ bool Ball::intersect(const Ray &ray, Plane &plane) const
 
 bool Ball::inside(const Ray &ray) const
 {
-  Vector v = ray.origin() - _position;
+  Vector v = ray.origin() - origin();
   if(   is_greater(_radius, v.norm()))
     return true;
   else if(is_equal(_radius, v.norm()) && is_greater(0, v * ray.direction()))
@@ -86,10 +96,10 @@ bool Ball::inside(const Ray &ray) const
 
 Color Ball::get_color(const Vector &intersection_point) const
 {
-  if(_color_type == OPAQUE) {
+  if(color_type() == OPAQUE) {
 
     if(!_image) {
-      return _color;
+      return color();
     }
 
     else {

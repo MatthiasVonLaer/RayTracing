@@ -5,6 +5,7 @@
 #include <assert.h>
 
 #include "ball.h"
+#include "composition.h"
 #include "cube.h"
 #include "function_plot.h"
 #include "plane_shape.h"
@@ -12,11 +13,11 @@
 
 using namespace std;
 
-Scene::Scene() :
-  _ray_diagram(0)
+Scene::Scene(RayDiagram *diagram) :
+  _ray_diagram(diagram),
+  _fog(0),
+  _recursion_break_ratio(0.1)
 {
-  _fog = 0;
-  _recursion_break_ratio = 0.1;
 }
 
 Scene::~Scene()
@@ -31,7 +32,7 @@ LightBeam Scene::raytracer(const Ray &ray) const
   return raytracer(ray, get_inside_shape(ray), 1, 0);
 }
 
-void Scene::parse(const string &line)
+void Scene::parse(const string &line, const Composition *parent)
 {
   stringstream stream(line);
   string command;
@@ -40,6 +41,10 @@ void Scene::parse(const string &line)
 
   if(command == "ambient_light") {
     stream >> _ambient_light;
+  }
+  else if(command == "compositions_dir") {
+    stream >> _compositions_dir;
+    _compositions_dir += "/";
   }
   else if(command == "fog") {
     stream >> _fog;
@@ -67,19 +72,22 @@ void Scene::parse(const string &line)
   }
   //shapes
   else if(command == "ball") {
-    get_or_create_shape_and_parse<Ball>(command, stream);
+    get_or_create_shape_and_parse<Ball>(command, stream, parent);
+  }
+  else if(command == "composition") {
+    get_or_create_shape_and_parse<Composition>(command, stream, parent);
   }
   else if(command == "cube") {
-    get_or_create_shape_and_parse<Cube>(command, stream);
+    get_or_create_shape_and_parse<Cube>(command, stream, parent);
   }
   else if(command == "function_plot") {
-    get_or_create_shape_and_parse<FunctionPlot>(command, stream);
+    get_or_create_shape_and_parse<FunctionPlot>(command, stream, parent);
   }
   else if(command == "light") {
-    get_or_create_shape_and_parse<LightSource>(command, stream);
+    get_or_create_shape_and_parse<LightSource>(command, stream, parent);
   }
   else if(command == "plane") {
-    get_or_create_shape_and_parse<PlaneShape>(command, stream);
+    get_or_create_shape_and_parse<PlaneShape>(command, stream, parent);
   }
   else {
     parser_error_unknown_command(command);
@@ -89,24 +97,19 @@ void Scene::parse(const string &line)
 
 void Scene::init()
 {
-  for(int i=_shapes.size()-1; i>=0; i--) {
-    if(!_shapes[i]->invisible()) {
-      _shapes[i]->init_unit_vectors();
-      _shapes[i]->init();
-      _shapes[i]->init_transformation_matrix();
-    }
-    if(_shapes[i]->invisible()) {
-      _shapes.erase(_shapes.begin() + i);
+  _shapes.clear();
+
+  for(map<string, Shape*>::iterator it = _shapes_by_name.begin(); it != _shapes_by_name.end(); it++) {
+    it->second->init_unit_vectors();
+    it->second->init();
+    it->second->init_transformation_matrix();
+    if(it->second->visible() && it->second->regular()) {
+      _shapes.push_back(it->second);
     }
   }
 }
 
-void Scene::set_ray_diagram(RayDiagram *rd)
-{
-  _ray_diagram = rd;
-}
-
-template<class T> void Scene::get_or_create_shape_and_parse(const std::string &shape_class, std::istream &in)
+template<class T> void Scene::get_or_create_shape_and_parse(const std::string &shape_class, std::istream &in, const Composition *parent)
 {
   string name;
   in >> name;
@@ -115,11 +118,13 @@ template<class T> void Scene::get_or_create_shape_and_parse(const std::string &s
   Shape *shape;
 
   if(!_shapes_by_name.count(name)) {
-    shape = new T;
+    shape = new T(parent);
     _shapes_by_name[name] = shape;
-    _shapes.push_back(shape);
     if(typeid(T) == typeid(LightSource)) {
       _lights.push_back( dynamic_cast<LightSource*>(shape) );
+    }
+    else if(typeid(T) == typeid(Composition)) {
+      _compositions.push_back( dynamic_cast<Composition*>(shape) );
     }
   }
   else {
@@ -139,25 +144,15 @@ void Scene::remove_shape(const string &name)
     return;
   }
 
-  for(int i=0; i<_shapes.size(); i++) {
-    if(_shapes[i] == _shapes_by_name[name]) {
-      delete _shapes[i];
-      _shapes.erase(_shapes.begin() + i);
-      _shapes_by_name.erase(name);
-      return;
-    }
-  }
-
   for(int i=0; i<_lights.size(); i++) {
     if(_lights[i] == _shapes_by_name[name]) {
-      delete _lights[i];
       _lights.erase(_lights.begin() + i);
-      _shapes_by_name.erase(name);
       return;
     }
   }
 
-  display_error("shape to remove " + name + " not found.");
+  delete _shapes_by_name[name];
+  _shapes_by_name.erase(name);
 }
 
 LightBeam Scene::raytracer(const Ray &ray, const Shape *inside_shape, double ratio, int depth) const
@@ -209,7 +204,7 @@ LightBeam Scene::raytracer(const Ray &ray, const Shape *inside_shape, double rat
       lightbeam = _ambient_light;
   }
 
-  if(_ray_diagram) {
+  if(_ray_diagram && _ray_diagram->enabled()) {
     _ray_diagram->add(ray, distance, ratio);
   }
 

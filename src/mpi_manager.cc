@@ -6,9 +6,13 @@
 
 using namespace std;
 
+bool MPI_Manager::singleton_exists = false;
+
 MPI_Manager::MPI_Manager()
   : tag_data(0), tag_order(1)
 {
+  assert(!singleton_exists);
+  singleton_exists = true;
 }
 
 void MPI_Manager::init(int argc, char** argv)

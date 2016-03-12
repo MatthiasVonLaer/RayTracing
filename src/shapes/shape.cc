@@ -1,15 +1,18 @@
 #include <iostream>
+
 #include "shape.h"
 #include "utilities.h"
 
 using namespace std;
 
-Shape::Shape():
+Shape::Shape(const Composition *parent):
+  _parent     (parent),
   _color_type (OPAQUE),
   _shape_type (SOLID),
   _color      (Color(255, 255, 255)),
   _silvered   (0),
-  _invisible  (false),
+  _visible    (true),
+  _regular    (false),
   _dx(1.),
   _dy(1.),
   _dz(1.),
@@ -35,12 +38,15 @@ void Shape::init_transformation_matrix()
                                _dz * vz());
 
   if(is_equal(0, _T_local_to_global.det())) {
-    display_warning("shape at " + _position.str() + " not regular.");
-    _invisible = true;
+    if(visible()) {
+      display_warning("shape at " + _position.str() + " not regular.");
+    }
+    _regular = false;
   }
   else {
     _T_global_to_local = _T_local_to_global.inv();
     _init_transformation_matrix = true;
+    _regular = true;
   }
 }
 
@@ -51,23 +57,21 @@ void Shape::parse(const string &command, istream &in)
     _color_type = OPAQUE;
   }
   if(command == "depth") {
-    in >> _dy;
-    _dy /= 2;
+    in >> _depth;
   }
   else if(command == "front_direction") {
     in >> _front_direction;
   }
   else if(command == "height") {
-    in >> _dz;
-    _dz /= 2;
+    in >> _height;
   }
   else if(command == "length") {
     double d;
     in >> d;
-    _dx = _dy = _dz = d/2;
+    _width = _depth = _height = d;
   }
   else if(command == "position") {
-    in >> _position;
+    in >> _center;
   }
   else if(command == "silvered") {
     in >> _silvered;
@@ -89,8 +93,7 @@ void Shape::parse(const string &command, istream &in)
     _color_type = TRANSPARENT;
   }
   else if(command == "width") {
-    in >> _dx;
-    _dx /= 2;
+    in >> _width;
   }
   else {
     parser_error_unknown_command(command);

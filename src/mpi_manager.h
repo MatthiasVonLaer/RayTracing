@@ -15,6 +15,7 @@ enum Order {
   ORDER_QUIT,
   ORDER_PARSE,
   ORDER_INIT,
+  ORDER_CAMERA_DATA,
   ORDER_RAYTRACE
 };
 
@@ -57,4 +58,6 @@ public:
   int _size;
   int _rank;
   MPI_Status status;
+
+  static bool singleton_exists;
 };

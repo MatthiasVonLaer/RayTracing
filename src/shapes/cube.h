@@ -9,14 +9,14 @@
 class Cube : public Shape
 {
 public:
-  Cube();
+  Cube(const Composition *parent);
   ~Cube();
-  void parse(const std::string &command, std::istream &in);
-  void init();
+  virtual void parse(const std::string &command, std::istream &in);
+  virtual void init();
 	
-  bool intersect(const Ray &ray, Plane &intersection_plane) const;
-  bool inside(const Ray &ray) const;
-  Color get_color(const Vector &intersection_point) const;
+  virtual bool intersect(const Ray &ray, Plane &intersection_plane) const;
+  virtual bool inside(const Ray &ray) const;
+  virtual Color get_color(const Vector &intersection_point) const;
 	
 private:
   Plane _plane[6];

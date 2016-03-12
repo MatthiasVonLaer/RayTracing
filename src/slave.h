@@ -12,6 +12,7 @@ public:
 private:
   void parse();
   void init();
+  void camera_data();
   void raytrace();
 
 private:
