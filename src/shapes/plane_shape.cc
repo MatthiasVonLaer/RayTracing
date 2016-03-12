@@ -13,7 +13,25 @@ PlaneShape::PlaneShape(const Composition *parent) :
   _shape_type = SURFACE;
 }
 
-void PlaneShape::init()
+void PlaneShape::parse(const string &command, istream &in)
+{
+  if(command == "height") {
+    in >> _im_height;
+  }
+  else if(command == "image") {
+    string path;
+    in >> path;
+    load_image(path, _image);
+  }
+  else if(command == "width") {
+    in >> _im_width;
+  }
+  else {
+    Shape::parse(command, in);
+  }
+}
+
+void PlaneShape::init_derived()
 {
   _plane = Plane(_position, vy());
 
@@ -39,24 +57,6 @@ void PlaneShape::init()
     else {
       _dz = -1;
     }
-  }
-}
-
-void PlaneShape::parse(const string &command, istream &in)
-{
-  if(command == "height") {
-    in >> _im_height;
-  }
-  else if(command == "image") {
-    string path;
-    in >> path;
-    load_image(path, _image);
-  }
-  else if(command == "width") {
-    in >> _im_width;
-  }
-  else {
-    Shape::parse(command, in);
   }
 }
 

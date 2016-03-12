@@ -100,9 +100,7 @@ void Scene::init()
   _shapes.clear();
 
   for(map<string, Shape*>::iterator it = _shapes_by_name.begin(); it != _shapes_by_name.end(); it++) {
-    it->second->init_unit_vectors();
-    it->second->init();
-    it->second->init_transformation_matrix();
+    it->second->init_sequence();
     if(it->second->visible() && it->second->regular()) {
       _shapes.push_back(it->second);
     }

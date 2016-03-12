@@ -23,6 +23,13 @@ Shape::Shape(const Composition *parent):
 {
 }
 
+void Shape::init_sequence()
+{
+  init_unit_vectors();
+  this->init_derived();
+  init_transformation_matrix();
+}
+
 void Shape::init_unit_vectors()
 {
   _front_direction.normalize();
@@ -57,21 +64,23 @@ void Shape::parse(const string &command, istream &in)
     _color_type = OPAQUE;
   }
   if(command == "depth") {
-    in >> _depth;
+    in >> _dy;
+    _dy /= 2;
   }
   else if(command == "front_direction") {
     in >> _front_direction;
   }
   else if(command == "height") {
-    in >> _height;
+    in >> _dz;
+    _dz /= 2;
   }
   else if(command == "length") {
     double d;
     in >> d;
-    _width = _depth = _height = d;
+    _dx = _dy = _dz = d/2;
   }
   else if(command == "position") {
-    in >> _center;
+    in >> _position;
   }
   else if(command == "silvered") {
     in >> _silvered;
@@ -93,7 +102,8 @@ void Shape::parse(const string &command, istream &in)
     _color_type = TRANSPARENT;
   }
   else if(command == "width") {
-    in >> _width;
+    in >> _dx;
+    _dx /= 2;
   }
   else {
     parser_error_unknown_command(command);

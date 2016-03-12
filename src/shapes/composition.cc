@@ -6,7 +6,7 @@ using namespace std;
 Composition::Composition(const Composition *parent) :
   Shape(parent)
 {
-  set_visibility(false);
+  _visible = false;
 }
 
 void Composition::parse(const string &command, istream &in)

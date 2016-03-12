@@ -15,45 +15,7 @@ FunctionPlot::FunctionPlot(const Composition *parent) :
   _ymax(1),
   _zmax(1)
 {	
-  set_shape_type(SURFACE);
-}
-
-void FunctionPlot::init()
-{
-  if(is_greater_or_equal(_xmin, _xmax) ||is_greater_or_equal(_ymin, _ymax) ||  is_greater_or_equal(_zmin, _zmax)) {
-    display_error("FunctionPlot: min >= max");
-  }
-
-  _plane[PLANE_XMAX] = Plane( origin() + dx()*_xmax * vx(), vx());
-  _plane[PLANE_YMAX] = Plane( origin() + dy()*_ymax * vy(), vy());
-  _plane[PLANE_ZMAX] = Plane( origin() + dz()*_zmax * vz(), vz());
-  _plane[PLANE_ZMIN] = Plane( origin() + dz()*_zmin * vz(), -vz());
-  _plane[PLANE_YMIN] = Plane( origin() + dy()*_ymin * vy(), -vy());
-  _plane[PLANE_XMIN] = Plane( origin() + dx()*_xmin * vx(), -vx());
-}
-
-double FunctionPlot::init_dx()
-{
-  return width() / (_xmax - _xmin);
-}
-
-double FunctionPlot::init_dy()
-{
-  return depth() / (_ymax - _ymin);
-}
-
-double FunctionPlot::init_dz()
-{
-  return height() / (_zmax - _zmin);
-}
-
-Vector FunctionPlot::init_origin()
-{
-  Vector origin(center());
-  origin -= (dx()*(_xmax+_xmin)/2) * vx();
-  origin -= (dy()*(_ymax+_ymin)/2) * vy();
-  origin -= (dz()*(_zmax+_zmin)/2) * vz();
-  return origin;
+  _shape_type = SURFACE;
 }
 
 void FunctionPlot::parse(const string &command, istream &in)
@@ -85,6 +47,28 @@ void FunctionPlot::parse(const string &command, istream &in)
   else {
     Shape::parse(command, in);
   }
+}
+
+void FunctionPlot::init_derived()
+{
+  if(is_greater_or_equal(_xmin, _xmax) ||is_greater_or_equal(_ymin, _ymax) ||  is_greater_or_equal(_zmin, _zmax)) {
+    display_error("FunctionPlot: min >= max");
+  }
+
+  _dx *= 2 / (_xmax - _xmin);
+  _dy *= 2 / (_ymax - _ymin);
+  _dz *= 2 / (_zmax - _zmin);
+
+  _position -= (_dx*(_xmax+_xmin)/2) * vx();
+  _position -= (_dy*(_ymax+_ymin)/2) * vy();
+  _position -= (_dz*(_zmax+_zmin)/2) * vz();
+
+  _plane[PLANE_XMAX] = Plane( _position + _dx*_xmax * vx(), vx());
+  _plane[PLANE_YMAX] = Plane( _position + _dy*_ymax * vy(), vy());
+  _plane[PLANE_ZMAX] = Plane( _position + _dz*_zmax * vz(), vz());
+  _plane[PLANE_ZMIN] = Plane( _position + _dz*_zmin * vz(), -vz());
+  _plane[PLANE_YMIN] = Plane( _position + _dy*_ymin * vy(), -vy());
+  _plane[PLANE_XMIN] = Plane( _position + _dx*_xmin * vx(), -vx());
 }
 
 bool FunctionPlot::intersect(const Ray &ray, Plane &intersection_plane) const

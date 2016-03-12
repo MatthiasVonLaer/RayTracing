@@ -20,53 +20,38 @@ class Shape
 {
 public:
   Shape(const Composition *parent);
-  void init_unit_vectors();
-  void init_transformation_matrix();
-  virtual void init() {}
   virtual void parse(const std::string &command, std::istream &in);
+  void init_sequence();
+
+protected:
+  void init_unit_vectors();
+  virtual void init_derived() {}
+  void init_transformation_matrix();
 
 public:
   virtual bool intersect(const Ray &ray, Plane &plane) const =0;
   virtual bool inside(const Ray &ray) const =0; 
   virtual Color get_color(const Vector &Vector) const =0;
 
-protected:
-  virtual double init_dx() = 0;
-  virtual double init_dy() = 0;
-  virtual double init_dz() = 0;
-  virtual Vector init_origin() {return _center;}
-
-public:
   ColorType     color_type() const        {return _color_type;}
   ShapeType     shape_type() const        {return _shape_type;}
   double        refraction_index() const  {return _refraction_index;}
   double        silvered() const          {return _silvered;}
   const Filter& filter() const            {return _filter;}
+  const Vector& position() const          {return _position;}
   bool          visible() const           {return _visible;}
   bool          regular() const           {return _regular;}
 
-protected:
   void load_image(const std::string &path, QImage* &im) const;
   Vector global_to_local_point(const Vector &v) const;
   Vector global_to_local_direction(const Vector &v) const;
   Vector local_to_global_point(const Vector &v) const;
   Vector local_to_global_direction(const Vector &v) const;
+  Vector vx() const {assert(_init_unit_vectors); return _top_direction ^ _front_direction;}
+  Vector vy() const {assert(_init_unit_vectors); return -_front_direction;}
+  Vector vz() const {assert(_init_unit_vectors); return _top_direction;}
 
-  Vector        vx() const      {return _top_direction ^ _front_direction;}
-  Vector        vy() const      {return -_front_direction;}
-  Vector        vz() const      {return _top_direction;}
-  double        dx() const      {return _dx;}
-  double        dy() const      {return _dy;}
-  double        dz() const      {return _dz;}
-  double        width() const   {return _width;}
-  double        height() const  {return _height;}
-  double        depth() const   {return _depth;}
-  const Vector& origin() const  {return _origin;}
-  const Color&  color() const   {return _color;}
-
-  void set_visibility(bool is)  {_visible = is;}
-
-private:
+protected:
   ColorType _color_type;
   ShapeType _shape_type;
 
@@ -78,17 +63,13 @@ private:
   bool   _visible;
   bool   _regular;
 
-  Vector _center;
-  Vector _origin;
-
-  double _width;
-  double _height;
-  double _depth;
+  Vector _position;
 
   double _dx; //right_left_direction
   double _dy; //front_direction
   double _dz; //top_direction
 
+private:
   Vector _top_direction;
   Vector _front_direction;
   bool _init_unit_vectors;

@@ -8,9 +8,12 @@ class PlaneShape : public Shape
  public:
   PlaneShape(const Composition *parent);
 
-  virtual void init();
   virtual void parse(const std::string &command, std::istream &in);
 
+ protected:
+  virtual void init_derived();
+
+ public:
   virtual bool intersect(const Ray &ray, Plane &intersection_plane) const;
   virtual bool inside(const Ray&) const {return false;}
   virtual Color get_color(const Vector &intersection_point) const;

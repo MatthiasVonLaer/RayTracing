@@ -10,17 +10,15 @@ class FunctionPlot : public Shape
 {
 public:
   FunctionPlot(const Composition *parent);
-  virtual void init();
   virtual void parse(const std::string &command, std::istream &in);
+
+protected:
+  virtual void init_derived();
 	
+public:
   virtual bool intersect(const Ray &ray, Plane &plane) const;
   virtual bool inside(const Ray &ray) const;
   virtual Color get_color(const Vector &vector) const;
-
-  double init_dx();
-  double init_dy();
-  double init_dz();
-  Vector init_origin();
 
 private:
   bool intersect_container_boundary(const Vector &point, Plane &intersection_plane) const;

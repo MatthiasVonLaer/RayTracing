@@ -46,16 +46,14 @@ void Cube::parse(const string &command, istream &in)
   }
 }
 
-void Cube::init()
+void Cube::init_derived()
 {
-  _plane[0] = Plane( origin() + dx() * vx(), vx());
-  _plane[1] = Plane( origin() + dy() * vy(), vy());
-  _plane[2] = Plane( origin() + dz() * vz(), vz());
-  _plane[3] = Plane( origin() - dz() * vz(), -vz());
-  _plane[4] = Plane( origin() - dy() * vy(), -vy());
-  _plane[5] = Plane( origin() - dx() * vx(), -vx());
-
-  Shape::init();
+  _plane[0] = Plane( _position + _dx * vx(), vx());
+  _plane[1] = Plane( _position + _dy * vy(), vy());
+  _plane[2] = Plane( _position + _dz * vz(), vz());
+  _plane[3] = Plane( _position - _dz * vz(), -vz());
+  _plane[4] = Plane( _position - _dy * vy(), -vy());
+  _plane[5] = Plane( _position - _dx * vx(), -vx());
 }
 
 bool Cube::intersect(const Ray &ray, Plane &intersection_plane) const
@@ -114,7 +112,7 @@ bool Cube::inside(const Ray &ray) const
 
 Color Cube::get_color(const Vector &intersection_point) const
 {
-  if(color_type() == OPAQUE) {
+  if(_color_type == OPAQUE) {
 
     Vector v = global_to_local_point(intersection_point);
     double a, b;
@@ -127,7 +125,7 @@ Color Cube::get_color(const Vector &intersection_point) const
     else if(is_equal(v.z(),-1)) { i = 3; a =-v.x(); b = v.y(); }
 
     if(i == -1 || !_image[i]) {
-      return color();
+      return _color;
     }
     else {
       return _image[i]->pixel((a+1)/2 * (_image[i]->width()-1), (b+1)/2 * (_image[i]->height()-1));

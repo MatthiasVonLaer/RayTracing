@@ -12,8 +12,11 @@ public:
   Cube(const Composition *parent);
   ~Cube();
   virtual void parse(const std::string &command, std::istream &in);
-  virtual void init();
+
+protected:
+  virtual void init_derived();
 	
+public:
   virtual bool intersect(const Ray &ray, Plane &intersection_plane) const;
   virtual bool inside(const Ray &ray) const;
   virtual Color get_color(const Vector &intersection_point) const;
