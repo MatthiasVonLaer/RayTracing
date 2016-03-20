@@ -1,10 +1,10 @@
-Dependencies:
+**Dependencies:**
 
 Qt5, Open MPI (and CMake for building)
 
 
 
-Building:
+**Building:**
 
 mkdir bin/
 cd bin/
@@ -13,7 +13,7 @@ make
 
 
 
-Running the program:
+**Running the program:**
 
 Serial-mode:
 ./bin/raytracing  param/sample.scn
@@ -25,3 +25,5 @@ Piped:
 <e.g. physics_engine>  |  ./bin/raytracing
 
 
+**Sample Pictures:**
+![Earth and Moon](earth_moon.jpg)
