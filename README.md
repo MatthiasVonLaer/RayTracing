@@ -5,15 +5,15 @@ A Raytracing program to create photo realistic pictures. Each pixel of the pictu
 
 ##Sample Pictures:
 
-![Glass and Window](window.jpg)
+![Glass and Window](sample_pictures/window.jpg)
 
-![Glass and Window](window2.jpg)
+![Glass and Window](sample_pictures/window2.jpg)
 
-![Earth and Moon](earth_moon.jpg)
+![Earth and Moon](sample_pictures/earth_moon.jpg)
 
-![Noise effects](noise.jpg)
+![Noise effects](sample_pictures/noise.jpg)
 
-![Raydiagram](raydiagram.jpg)
+![Raydiagram](sample_pictures/raydiagram.jpg)
 
 ##Instructions
 **Dependencies:**
