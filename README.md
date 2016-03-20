@@ -9,11 +9,11 @@ A Raytracing program to create photo realistic pictures. Each pixel of the pictu
 
 ![Glass and Window](window2.jpg)
 
-![Raydiagram](raydiagram.jpg)
-
 ![Earth and Moon](earth_moon.jpg)
 
 ![Noise effects](noise.jpg)
+
+![Raydiagram](raydiagram.jpg)
 
 ##Instructions
 **Dependencies:**
