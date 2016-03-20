@@ -5,7 +5,7 @@
 
 using namespace std;
 
-Cube::Cube(const Composition *parent) :
+Cube::Cube(Composition *parent) :
   Shape(parent)
 {	
   for(int i=0; i<6; i++) {
@@ -16,9 +16,7 @@ Cube::Cube(const Composition *parent) :
 Cube::~Cube()
 {
   for(int i=0; i<6; i++ ) {
-    if(_image[i]) {
-      delete _image[i];
-    }
+    delete _image[i];
   }
 }
 
@@ -46,14 +44,14 @@ void Cube::parse(const string &command, istream &in)
   }
 }
 
-void Cube::init_derived()
+void Cube::init_derived_class()
 {
-  _plane[0] = Plane( _position + _dx * vx(), vx());
-  _plane[1] = Plane( _position + _dy * vy(), vy());
-  _plane[2] = Plane( _position + _dz * vz(), vz());
-  _plane[3] = Plane( _position - _dz * vz(), -vz());
-  _plane[4] = Plane( _position - _dy * vy(), -vy());
-  _plane[5] = Plane( _position - _dx * vx(), -vx());
+  _plane[0] = Plane( origin() + vx(), vx());
+  _plane[1] = Plane( origin() + vy(), vy());
+  _plane[2] = Plane( origin() + vz(), vz());
+  _plane[3] = Plane( origin() - vz(), -vz());
+  _plane[4] = Plane( origin() - vy(), -vy());
+  _plane[5] = Plane( origin() - vx(), -vx());
 }
 
 bool Cube::intersect(const Ray &ray, Plane &intersection_plane) const
@@ -112,7 +110,7 @@ bool Cube::inside(const Ray &ray) const
 
 Color Cube::get_color(const Vector &intersection_point) const
 {
-  if(_color_type == OPAQUE) {
+  if(color_type() == OPAQUE) {
 
     Vector v = global_to_local_point(intersection_point);
     double a, b;
@@ -123,9 +121,10 @@ Color Cube::get_color(const Vector &intersection_point) const
     else if(is_equal(v.y(),-1)) { i = 4; a = v.x(); b = v.z(); }
     else if(is_equal(v.z(), 1)) { i = 2; a = v.x(); b = v.y(); }
     else if(is_equal(v.z(),-1)) { i = 3; a =-v.x(); b = v.y(); }
+    else                        { i = 0; a = v.y(); b = v.z(); }
 
-    if(i == -1 || !_image[i]) {
-      return _color;
+    if(!_image[i]) {
+      return color();
     }
     else {
       return _image[i]->pixel((a+1)/2 * (_image[i]->width()-1), (b+1)/2 * (_image[i]->height()-1));

@@ -5,17 +5,6 @@
 
 class Display
 {
-public:
-  Display();
-  void parse(const std::string &command, std::istream &stream);
-
-  void start_timer();
-  void stop_timer();
-  void add_mpix(int n);
-
-  void progress(const std::string &name, double progress);
-  void summary() const;
-
 private:
   const int _width_text;
   const int _width_bar;
@@ -32,4 +21,15 @@ private:
   long _t0;
 
   bool _timer_running;
+
+public:
+  Display();
+  void parse(const std::string &command, std::istream &stream);
+
+  void start_timer();
+  void stop_timer();
+  void add_mpix(int n);
+
+  void progress(const std::string &name, double progress);
+  void summary() const;
 };

@@ -10,9 +10,11 @@ shapes/
 SET(LOCAL_SRC
 camera.cc
 color.cc
+complex_light_beam.cc
 controller.cc
 display.cc
 filter.cc
+gui.cc
 light_beam.cc
 lens.cc
 main.cc
@@ -25,8 +27,9 @@ ray.cc
 ray_diagram.cc
 root_finder.cc
 shapes/ball.cc
-shapes/cube.cc
 shapes/composition.cc
+shapes/cube.cc
+shapes/cylinder.cc
 shapes/function_plot.cc
 shapes/light_source.cc
 shapes/plane_shape.cc

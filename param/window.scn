@@ -1,0 +1,71 @@
+camera output_filename    out/scene.jpg
+camera resolution         2250 1500
+camera crop_factor        1.5
+camera focal_length       50  //mm
+camera aperture           f/2.8
+camera focus              4   //m
+camera aperture_blades    4
+camera diffraction        0
+
+camera position           .5 -4 1.5
+camera viewing_direction  -.15 1 -.1 
+camera top_direction      0 0 1
+
+camera gamma              1
+camera exposure_range     8//stops
+camera exposure           0//ev
+
+camera colorization       rgb
+camera vignette           -2
+//camera noise              .2
+
+raytracer recursion_break_ratio  .01
+raytracer recursion_break_depth  10
+
+ray_diagram rays 35  range 15  y0 700
+ray_diagram width 800  height 2000 
+ray_diagram output_file diagram.jpg
+
+compositions_dir param/
+
+sky             color 0   0   255  lux 2
+ambient_light   color 255 255 255  lux 5
+fog             0
+
+light sun  position 5 20 5  color 255 220 200  lumen 300000
+light sun  radius 1
+
+composition table  load table.cmp
+composition table  position  0 0 0
+
+composition glass  load glass_of_wine.cmp
+composition glass  position  -.3 0 .8
+
+cube wall  position  0 2 1  width 3  height 2  depth .4
+cube wall  image_all_sides img/stone.jpg
+
+cube hole  position  0 2 1.25  width .8  height 1.2  depth .4
+cube hole  transparent  color_filter 0 0 0  refraction_index 1
+
+
+cube ceiling  image 1 img/wood_dark.jpg
+cube ceiling  position 0 0 2.5  front_direction 0 0 1  top_direction 1 0 0
+cube ceiling  width 4  height 6  depth .2
+cube ceiling  silvered 0.15
+
+cube floor  image 4 img/wood_dark.jpg
+cube floor  position 0 0 0  front_direction 0 0 1  top_direction 1 0 0
+cube floor  width 4  height 6  depth .2
+cube floor  silvered 0.15
+
+plane view  image img/landscape2.jpg
+plane view  position -15 60 -10  front_direction 0 -1 0  top_direction 0 0 1
+plane view  width 30
+
+
+take_picture
+launch_gui
+quit
+
+
+

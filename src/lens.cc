@@ -7,11 +7,11 @@
 using namespace std;
 
 Lens::Lens() :
+  _wavelength_light  (800e-9),
+  _integration_nodes_radius(250),
   _focal_length      (.035),
   _aperture          (5.6),
-  _blades            (0),
-  _lambda            (800e-9),
-  _integration_nodes_radius(100)
+  _blades            (0)
 {
 }
 
@@ -40,14 +40,6 @@ Polygon& Lens::aperture_shape(int radius)
   return *(_aperture_shapes[radius]);
 }
 
-complex<double> Lens::diffraction_pattern(double x_0, double y_0)
-{
-  if(!_diffraction_pattern.count(x_0) || !_diffraction_pattern[x_0].count(y_0)) {
-    _diffraction_pattern[x_0][y_0] = integrate_diffraction_pattern(x_0, y_0);
-  }
-  return _diffraction_pattern[x_0][y_0];
-}
-
 void Lens::clear_aperture_shapes()
 {
   for(map<int, Polygon*>::iterator it = _aperture_shapes.begin(); it != _aperture_shapes.end(); it++) {
@@ -56,9 +48,12 @@ void Lens::clear_aperture_shapes()
   _aperture_shapes.clear();
 }
 
-void Lens::clear_diffraction_pattern()
+complex<double> Lens::diffraction_pattern(double x_0, double y_0)
 {
-  _diffraction_pattern.clear();
+  if(!_diffraction_pattern.count(x_0) || !_diffraction_pattern[x_0].count(y_0)) {
+    _diffraction_pattern[x_0][y_0] = integrate_diffraction_pattern(x_0, y_0);
+  }
+  return _diffraction_pattern[x_0][y_0];
 }
 
 complex<double> Lens::integrate_diffraction_pattern(double x_0, double y_0)
@@ -69,8 +64,8 @@ complex<double> Lens::integrate_diffraction_pattern(double x_0, double y_0)
   for(int n=0; n<aperture.size(); n++) {
     double x = aperture.x(n) * ds; 
     double y = aperture.y(n) * ds;
-    //integral += exp( - 2 * PI * I / _lambda * (- r(x_0, y_0, x, y)) ) / r(x_0, y_0, x, y);
-    integral += exp( - 2 * PI * I / _lambda * (r(0, 0, x, y) - r(x_0, y_0, x, y)) ) * r(0, 0, x, y) / r(x_0, y_0, x, y);
+    //integral += exp( - 2 * PI * I / _wavelength_light * (- r(x_0, y_0, x, y)) ) / r(x_0, y_0, x, y);
+    integral += exp( - 2 * PI * I / _wavelength_light * (r(0, 0, x, y) - r(x_0, y_0, x, y)) ) * r(0, 0, x, y) / r(x_0, y_0, x, y);
   }
   integral /= aperture.size();
   return integral;
@@ -80,3 +75,9 @@ double Lens::r(double x_0, double y_0, double x, double y) const
 {
   return sqrt( pow(x-x_0, 2) + pow(y-y_0, 2) + pow(_focal_length, 2) );
 }
+
+void Lens::clear_diffraction_pattern()
+{
+  _diffraction_pattern.clear();
+}
+

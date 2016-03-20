@@ -7,16 +7,17 @@
 #include "ball.h"
 #include "composition.h"
 #include "cube.h"
+#include "cylinder.h"
 #include "function_plot.h"
 #include "plane_shape.h"
 #include "scene.h"
 
 using namespace std;
 
-Scene::Scene(RayDiagram *diagram) :
-  _ray_diagram(diagram),
+Scene::Scene() :
   _fog(0),
-  _recursion_break_ratio(0.1)
+  _recursion_break_ratio(0.1),
+  _tracking_active(false)
 {
 }
 
@@ -27,12 +28,7 @@ Scene::~Scene()
   }
 }
 
-LightBeam Scene::raytracer(const Ray &ray) const
-{
-  return raytracer(ray, get_inside_shape(ray), 1, 0);
-}
-
-void Scene::parse(const string &line, const Composition *parent)
+void Scene::parse(const string &line, Composition *parent)
 {
   stringstream stream(line);
   string command;
@@ -65,7 +61,7 @@ void Scene::parse(const string &line, const Composition *parent)
   else if(command == "remove") {
     string name1, name2;
     stream >> name1 >> name2;
-    remove_shape(name1 + name2);
+    remove_shape(name1 + "_" + name2);
   }
   else if(command == "sky") {
     stream >> _sky;
@@ -79,6 +75,9 @@ void Scene::parse(const string &line, const Composition *parent)
   }
   else if(command == "cube") {
     get_or_create_shape_and_parse<Cube>(command, stream, parent);
+  }
+  else if(command == "cylinder") {
+    get_or_create_shape_and_parse<Cylinder>(command, stream, parent);
   }
   else if(command == "function_plot") {
     get_or_create_shape_and_parse<FunctionPlot>(command, stream, parent);
@@ -95,34 +94,30 @@ void Scene::parse(const string &line, const Composition *parent)
 
 }
 
-void Scene::init()
+template<class T> void Scene::get_or_create_shape_and_parse(const std::string &shape_class, std::istream &in, Composition *parent)
 {
-  _shapes.clear();
+  string id;
+  in >> id;
 
-  for(map<string, Shape*>::iterator it = _shapes_by_name.begin(); it != _shapes_by_name.end(); it++) {
-    it->second->init_sequence();
-    if(it->second->visible() && it->second->regular()) {
-      _shapes.push_back(it->second);
-    }
-  }
-}
-
-template<class T> void Scene::get_or_create_shape_and_parse(const std::string &shape_class, std::istream &in, const Composition *parent)
-{
   string name;
-  in >> name;
-  name = shape_class + name;
+  if(parent) {
+    name += parent->name() + "/";
+  }
+
+  name += shape_class + "_" + id;
 
   Shape *shape;
 
   if(!_shapes_by_name.count(name)) {
     shape = new T(parent);
     _shapes_by_name[name] = shape;
+    _shapes.push_back(shape);
     if(typeid(T) == typeid(LightSource)) {
       _lights.push_back( dynamic_cast<LightSource*>(shape) );
     }
     else if(typeid(T) == typeid(Composition)) {
       _compositions.push_back( dynamic_cast<Composition*>(shape) );
+      _compositions.back()->setup(this, parent, _compositions_dir);
     }
   }
   else {
@@ -153,11 +148,30 @@ void Scene::remove_shape(const string &name)
   _shapes_by_name.erase(name);
 }
 
+
+void Scene::init()
+{
+  for(map<string, Shape*>::iterator it = _shapes_by_name.begin(); it != _shapes_by_name.end(); it++) {
+    it->second->init_sequence();
+  }
+
+  for(int i=_shapes.size()-1; i>=0; i--) {
+    if(!_shapes[i]->visible() || !_shapes[i]->regular()) {
+      _shapes.erase( _shapes.begin() + i);
+    }
+  }
+
+}
+
+
+
+LightBeam Scene::raytracer(const Ray &ray) const
+{
+  return raytracer(ray, get_inside_shape(ray), 1, 0);
+}
+
 LightBeam Scene::raytracer(const Ray &ray, const Shape *inside_shape, double ratio, int depth) const
 {
-  if(ratio < _recursion_break_ratio || depth >= _recursion_break_depth)
-    return LightBeam();
-
   //Get intersection point
   Plane intersection_plane;
   const Shape *intersection_shape = get_intersection_shape(ray, inside_shape, intersection_plane);
@@ -166,31 +180,42 @@ LightBeam Scene::raytracer(const Ray &ray, const Shape *inside_shape, double rat
   //Get Lightbeam
   LightBeam lightbeam;
   if(intersection_shape) {
-    //MIRROR
-    if(is_equal(intersection_shape->silvered(), 1))
-      lightbeam = reflection(ray, intersection_plane, inside_shape, ratio, depth+1);
+
+    if(inside_shape) {
+      ratio *= inside_shape->filter().absorption(distance);
+    }
+    if(ratio < _recursion_break_ratio || depth >= _recursion_break_depth)
+      return LightBeam();
 
     //TRANSPARENT
-    else if(intersection_shape->color_type() == TRANSPARENT) {
-      lightbeam = refraction(ray, intersection_plane, inside_shape, intersection_shape, ratio, depth+1);
+    if(intersection_shape->color_type() == TRANSPARENT) {
+      const Shape *inside_shape_2 = get_inside_shape(Ray(intersection_plane.origin(), ray.direction() ));
+      if(!inside_shape_2 || inside_shape_2->color_type() == TRANSPARENT) {
+        lightbeam = refraction(ray, intersection_plane, inside_shape, inside_shape_2, intersection_shape, ratio, depth+1);
+      }
+      else {
+        lightbeam = scattered_light(intersection_plane, inside_shape_2->get_color(intersection_plane.origin())) * (1 - intersection_shape->silvered());
+      }
     }
 
     //OPAQUE
     else {
-      lightbeam =
-        reflection(ray, intersection_plane, inside_shape, ratio * intersection_shape->silvered(), depth+1) * intersection_shape->silvered() +
-        scattered_light(intersection_plane, intersection_shape->get_color(intersection_plane.origin())) * (1 - intersection_shape->silvered());
+      if(is_greater(ratio * intersection_shape->silvered(), _recursion_break_ratio)) {
+        lightbeam += reflection(ray, intersection_plane, inside_shape, ratio * intersection_shape->silvered(), depth+1) * intersection_shape->silvered();
+      }
+      if(is_greater(ratio * (1-intersection_shape->silvered()), _recursion_break_ratio)) {
+        lightbeam += scattered_light(intersection_plane, intersection_shape->get_color(intersection_plane.origin())) * (1 - intersection_shape->silvered());
+      }
     }
 
     //FILTER
     if(inside_shape) {
-      Filter filter = inside_shape->filter() ^ distance;
-      lightbeam = lightbeam * filter;
+      lightbeam.absorb(inside_shape->filter(), distance);
     }
     //FOG
-    else {
-      double fog = exp(_fog * distance);
-      lightbeam = lightbeam*fog + _ambient_light*(1-fog);
+    else if(is_greater(_fog, 0)) {
+      double fog_factor = exp(-_fog * distance);
+      lightbeam = lightbeam*fog_factor + _ambient_light*(1-fog_factor);
     }
   }
   //No intersection
@@ -202,8 +227,8 @@ LightBeam Scene::raytracer(const Ray &ray, const Shape *inside_shape, double rat
       lightbeam = _ambient_light;
   }
 
-  if(_ray_diagram && _ray_diagram->enabled()) {
-    _ray_diagram->add(ray, distance, ratio);
+  if(_tracking_active) {
+    _tracking_data.push_back( TrackingData(ray, intersection_shape, distance, ratio) );
   }
 
   lightbeam.set_depth(distance);
@@ -219,14 +244,9 @@ LightBeam Scene::reflection(const Ray &ray, const Plane &intersection_plane, con
   return raytracer(Ray(p, u), inside_shape, ratio, depth);
 }
 
-LightBeam Scene::refraction(const Ray &ray, const Plane &intersection_plane, const Shape *inside_shape, const Shape *intersection_shape, double ratio, int depth) const
+LightBeam Scene::refraction(const Ray &ray, const Plane &intersection_plane, const Shape *inside_shape, const Shape *inside_shape_2,
+                            const Shape *intersection_shape, double ratio, int depth) const
 {
-  if(intersection_shape->shape_type() == SURFACE)
-    return raytracer(Ray(intersection_plane.origin(), ray.direction()), inside_shape, ratio, depth) * intersection_shape->filter();
-
-  const Shape *inside_shape_2 = get_inside_shape(Ray(intersection_plane.origin(), ray.direction() ));
-
-	
   Vector normal = intersection_plane.normal();
   if(is_greater( 0, ray.direction()*normal ))
     normal = -normal;
@@ -255,8 +275,14 @@ LightBeam Scene::refraction(const Ray &ray, const Plane &intersection_plane, con
     else
       reflection_coefficient = R_0 + (1 - R_0) * pow(1 - refraction_ray.direction()*normal, 5);
 
-    return reflection(ray, intersection_plane, inside_shape, ratio*reflection_coefficient, depth) * reflection_coefficient
-      + raytracer(refraction_ray, inside_shape_2, ratio*(1-reflection_coefficient), depth) * (1-reflection_coefficient);
+    LightBeam lightbeam;
+    if(is_greater(ratio*reflection_coefficient, _recursion_break_ratio)) {
+      lightbeam += reflection(ray, intersection_plane, inside_shape, ratio*reflection_coefficient, depth) * reflection_coefficient;
+    }
+    if(is_greater(ratio*(1-reflection_coefficient), _recursion_break_ratio)) {
+      lightbeam += raytracer(refraction_ray, inside_shape_2, ratio*(1-reflection_coefficient), depth) * (1-reflection_coefficient);
+    }
+    return lightbeam;
   }
   else
     return reflection(ray, intersection_plane, inside_shape, ratio, depth);
@@ -268,15 +294,15 @@ LightBeam Scene::scattered_light(const Plane &intersection_plane, const Color &c
 
   for(int i=0; i<_lights.size(); i++) {
     Ray light_ray(intersection_plane.origin(),
-                  _lights[i]->position() - intersection_plane.origin());
+                  _lights[i]->origin() - intersection_plane.origin());
 
-    double distance = (_lights[i]->position() - intersection_plane.origin()).norm();
+    double distance = (_lights[i]->origin() - intersection_plane.origin()).norm();
 
-    double fog = exp(-_fog * distance);
+    double fog_factor = exp(-_fog * distance);
 
     light_beam += light_beam_from_source(light_ray, _lights[i], distance)
                   * (fabs(light_ray.direction() * intersection_plane.normal()) / (4*PI*distance*distance)
-                  * fog);
+                  * fog_factor);
   }
 	
   return light_beam - color;
@@ -291,19 +317,17 @@ LightBeam Scene::light_beam_from_source(const Ray &ray, const LightSource *light
   if(!intersection_shape || light == intersection_shape || is_greater(distance, distance_light)) {
     return light->beam();
   }
-  else if(intersection_shape->color_type() != TRANSPARENT) {
+  else if(intersection_shape->color_type() != TRANSPARENT || (inside_shape && inside_shape->color_type() != TRANSPARENT)) {
     return LightBeam(); 
   }
   else {
-    Filter filter;
+    LightBeam lightbeam = light_beam_from_source(ray + ray.direction()*distance, light, distance_light - distance);
+
     if(inside_shape) {
-      filter = inside_shape->filter() ^ distance;
-    }
-    if(intersection_shape->shape_type() == SURFACE) {
-      filter *= intersection_shape->filter();
+      lightbeam.absorb(inside_shape->filter(), distance);
     }
 
-    return light_beam_from_source(ray + ray.direction()*distance, light, distance_light - distance) * filter;
+    return lightbeam;
   }
 }
 
@@ -338,3 +362,25 @@ const Shape* Scene::get_inside_shape(const Ray &ray) const
   }
   return 0;
 }
+
+void Scene::clear_tracking() const
+{
+  _tracking_data.clear();
+}
+
+void Scene::start_tracking() const
+{
+  if(_tracking_active) {
+    display_error("Scene: Tracking already running.");
+  }
+  _tracking_active = true;
+}
+
+void Scene::stop_tracking() const
+{
+  if(!_tracking_active) {
+    display_error("Scene: Tracking not running.");
+  }
+  _tracking_active = false;
+}
+

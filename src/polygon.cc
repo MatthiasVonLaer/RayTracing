@@ -31,23 +31,6 @@ Polygon::Polygon(int number_vertices, int radius) :
   fill_vector();
 }
 
-string Polygon::str() const
-{
-  stringstream stream;
-  for(int j=0; j<_pixelmatrix.size(); j++) {
-    for(int i=0; i<_pixelmatrix[j].size(); i++) {
-      if(_pixelmatrix[i][j]) {
-        stream << " X";
-      }
-      else {
-        stream << " .";
-      }
-    }
-    stream << endl;
-  }
-  return stream.str();
-}
-
 void Polygon::fill_matrix()
 {
   vector <int> vertex_x;
@@ -111,3 +94,21 @@ void Polygon::fill_vector()
     }
   }
 }
+
+string Polygon::str() const
+{
+  stringstream stream;
+  for(int j=0; j<_pixelmatrix.size(); j++) {
+    for(int i=0; i<_pixelmatrix[j].size(); i++) {
+      if(_pixelmatrix[i][j]) {
+        stream << " X";
+      }
+      else {
+        stream << " .";
+      }
+    }
+    stream << endl;
+  }
+  return stream.str();
+}
+

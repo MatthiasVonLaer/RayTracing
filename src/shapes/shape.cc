@@ -1,60 +1,28 @@
 #include <iostream>
 
+#include "composition.h"
 #include "shape.h"
 #include "utilities.h"
 
 using namespace std;
 
-Shape::Shape(const Composition *parent):
-  _parent     (parent),
+Shape::Shape(Composition *parent):
+  _parent(parent),
   _color_type (OPAQUE),
   _shape_type (SOLID),
   _color      (Color(255, 255, 255)),
   _silvered   (0),
   _visible    (true),
   _regular    (false),
-  _dx(1.),
-  _dy(1.),
-  _dz(1.),
+  _width(1.),
+  _depth(1.),
+  _height(1.),
+  _width_parsed(false),
+  _depth_parsed(false),
+  _height_parsed(false),
   _top_direction(0, 0, 1),
-  _front_direction(0, -1, 0),
-  _init_unit_vectors(false),
-  _init_transformation_matrix(false)
+  _front_direction(0, -1, 0)
 {
-}
-
-void Shape::init_sequence()
-{
-  init_unit_vectors();
-  this->init_derived();
-  init_transformation_matrix();
-}
-
-void Shape::init_unit_vectors()
-{
-  _front_direction.normalize();
-  _top_direction -= (_front_direction * _top_direction) * _front_direction;
-  _top_direction.normalize();
-  _init_unit_vectors = true;
-}
-
-void Shape::init_transformation_matrix()
-{
-  _T_local_to_global = Matrix( _dx * vx(),
-                               _dy * vy(),
-                               _dz * vz());
-
-  if(is_equal(0, _T_local_to_global.det())) {
-    if(visible()) {
-      display_warning("shape at " + _position.str() + " not regular.");
-    }
-    _regular = false;
-  }
-  else {
-    _T_global_to_local = _T_local_to_global.inv();
-    _init_transformation_matrix = true;
-    _regular = true;
-  }
 }
 
 void Shape::parse(const string &command, istream &in)
@@ -63,21 +31,22 @@ void Shape::parse(const string &command, istream &in)
     in >> _color;
     _color_type = OPAQUE;
   }
-  if(command == "depth") {
-    in >> _dy;
-    _dy /= 2;
+  else if(command == "depth") {
+    in >> _depth;
+    _depth_parsed = true;
   }
   else if(command == "front_direction") {
     in >> _front_direction;
   }
   else if(command == "height") {
-    in >> _dz;
-    _dz /= 2;
+    in >> _height;
+    _height_parsed = true;
   }
   else if(command == "length") {
     double d;
     in >> d;
-    _dx = _dy = _dz = d/2;
+    _width = _depth = _height = d;
+    _width_parsed = _depth_parsed = _height_parsed = true;
   }
   else if(command == "position") {
     in >> _position;
@@ -89,6 +58,9 @@ void Shape::parse(const string &command, istream &in)
     in >> _top_direction;
   }
   else if(command == "transparent") {
+    if(_shape_type == SURFACE) {
+      display_error("Surface may not be transparent.");
+    }
     string cmd;
     in >> cmd;
     parser_assert_command(cmd, "color_filter");
@@ -102,8 +74,8 @@ void Shape::parse(const string &command, istream &in)
     _color_type = TRANSPARENT;
   }
   else if(command == "width") {
-    in >> _dx;
-    _dx /= 2;
+    in >> _width;
+    _width_parsed = true;
   }
   else {
     parser_error_unknown_command(command);
@@ -111,11 +83,76 @@ void Shape::parse(const string &command, istream &in)
 
 }
 
+void Shape::init_sequence()
+{
+  _dx     = this->init_dx();
+  _dy     = this->init_dy();
+  _dz     = this->init_dz();
+
+  init_local_coordinates();
+
+  _origin = this->init_origin();
+  if(_parent) {
+    _origin = _parent->transformation_matrix() * _origin + _parent->origin();
+  }
+
+  this->init_derived_class();
+}
+
+void Shape::init_local_coordinates()
+{
+  _front_direction.normalize();
+  _top_direction -= (_front_direction * _top_direction) * _front_direction;
+  _top_direction.normalize();
+
+  _vx = _dx * (_top_direction ^ _front_direction);
+  _vy = -_dy * _front_direction;
+  _vz = _dz * _top_direction;
+
+  if(_parent) {
+    _parent->init_sequence();
+    _vx = _parent->transformation_matrix() * _vx;
+    _vy = _parent->transformation_matrix() * _vy;
+    _vz = _parent->transformation_matrix() * _vz;
+  }
+
+  _T_local_to_global = Matrix( _vx, _vy, _vz);
+
+  if(is_equal(0, _T_local_to_global.det())) {
+    if(visible()) {
+      display_warning("shape at " + _position.str() + " not regular.");
+    }
+    _regular = false;
+  }
+  else {
+    _T_global_to_local = _T_local_to_global.inv();
+    _regular = true;
+  }
+}
+
+Vector Shape::global_to_local_point(const Vector &v) const
+{
+  return _T_global_to_local * (v - _origin);
+}
+
+Vector Shape::global_to_local_direction(const Vector &v) const
+{
+  return _T_global_to_local * v;
+}
+
+Vector Shape::local_to_global_point(const Vector &v) const
+{
+  return (_T_local_to_global * v) + _origin;
+}
+
+Vector Shape::local_to_global_direction(const Vector &v) const
+{
+  return _T_local_to_global * v;
+}
+
 void Shape::load_image(const string &path, QImage* &im) const
 {
-  if(im) {
-    delete im;
-  }
+  delete im;
   im = new QImage(path.c_str());
   if(im->isNull()) {
     display_warning("Couldn't load image " + path);
@@ -124,26 +161,3 @@ void Shape::load_image(const string &path, QImage* &im) const
   }
 }
 
-Vector Shape::global_to_local_point(const Vector &v) const
-{
-  assert(_init_transformation_matrix);
-  return _T_global_to_local * (v - _position);
-}
-
-Vector Shape::global_to_local_direction(const Vector &v) const
-{
-  assert(_init_transformation_matrix);
-  return _T_global_to_local * v;
-}
-
-Vector Shape::local_to_global_point(const Vector &v) const
-{
-  assert(_init_transformation_matrix);
-  return (_T_local_to_global * v) + _position;
-}
-
-Vector Shape::local_to_global_direction(const Vector &v) const
-{
-  assert(_init_transformation_matrix);
-  return _T_local_to_global * v;
-}

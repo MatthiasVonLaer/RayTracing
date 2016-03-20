@@ -8,21 +8,26 @@
 
 class Ball : public Shape
 {
+private:
+  double _radius;
+  QImage *_image;
+
 public:
-  Ball(const Composition *parent);
+  Ball(Composition *parent);
   ~Ball();
 
   virtual void parse(const std::string &command, std::istream &in);
 
-protected:
-  void init_derived();
+private:
+  double init_dx() {return _radius;}
+  double init_dy() {return _radius;}
+  double init_dz() {return _radius;}
 
 public:
-  virtual bool intersect(const Ray &ray, Plane &plane) const;
-  virtual bool inside(const Ray &ray) const;
-  virtual Color get_color(const Vector &intersection_point) const;
+  bool intersect(const Ray &ray, Plane &plane) const;
+  bool inside(const Ray &ray) const;
+  Color get_color(const Vector &intersection_point) const;
 
 protected:
-  double _radius;
-  QImage *_image;
+  void set_radius(double r) {_radius = r;}
 };

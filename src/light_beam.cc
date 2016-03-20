@@ -6,6 +6,13 @@
 
 using namespace std;
 
+void LightBeam::absorb(const Filter &filter, double dist)
+{
+  _r *= exp( - filter.red() * dist);
+  _g *= exp( - filter.green() * dist);
+  _b *= exp( - filter.blue() * dist);
+}
+
 string LightBeam::str() const
 {
   stringstream stream;
@@ -23,7 +30,7 @@ istream& operator>>(istream &in, LightBeam &lb)
   parser_assert_command(command, "color");
   in >> color;
   in >> command;
-  parser_assert_command(command, "lumen");
+  parser_assert_command(command, "lux");
   in >> lum;
 
   lb = LightBeam(color, lum);

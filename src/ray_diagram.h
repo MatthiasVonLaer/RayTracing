@@ -5,42 +5,52 @@
 #include <QImage>
 #include <QPainter>
 
+#include "camera.h"
 #include "matrix.h"
 #include "ray.h"
+#include "scene.h"
+#include "shape.h"
 #include "vector.h"
-
-class Camera;
 
 class RayDiagram
 {
-public:
-  RayDiagram();
-  ~RayDiagram();
-  void parse(const std::string &command, std::istream &stream);
-  void init(const Camera &camera);
-
-  void set_pixel_in_progress(int x, int y);
-  void add(const Ray &ray, double distance, double ratio);
-
-  void save() const;
-  bool enabled() const  {return _enabled;}
+private:
+  static QColor color_of_shape(const Shape* shape);
 
 private:
-  Vector _position;
+  const Scene &_scene;
+  const Camera &_camera;
+
+  QImage _image;
+  QPainter *_painter;
+
   Matrix _transformation_matrix;
+
   double _range;
   int _width;
   int _height;
   int _y0;
   int _number_rays;
-  int _resolution_x;
 
   std::string _output_file;
 
   bool _enabled;
-  int _pixel_in_progress_x;
-  int _pixel_in_progress_y;
 
-  QImage _image;
-  QPainter *_painter;
+public:
+  RayDiagram(const Scene &scene, const Camera &camera);
+  ~RayDiagram();
+
+  void parse(const std::string &command, std::istream &stream);
+  void init();
+
+public:
+  void track();
+private:
+  void paint_ray(const Ray &ray, double distance, double ratio);
+  void paint_shape(const Ray &ray, const Shape *shape, double distance);
+
+public:
+  void save() const;
+
+  bool enabled() const  {return _enabled;}
 };

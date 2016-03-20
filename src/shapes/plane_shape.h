@@ -5,22 +5,22 @@
 
 class PlaneShape : public Shape
 {
- public:
-  PlaneShape(const Composition *parent);
+private:
+  Plane _plane;
+  QImage *_image;
+
+public:
+  PlaneShape(Composition *parent);
 
   virtual void parse(const std::string &command, std::istream &in);
 
- protected:
-  virtual void init_derived();
+private:
+  double init_dx();
+  double init_dz();
+  void init_derived_class();
 
- public:
-  virtual bool intersect(const Ray &ray, Plane &intersection_plane) const;
-  virtual bool inside(const Ray&) const {return false;}
-  virtual Color get_color(const Vector &intersection_point) const;
-
- private:
-  Plane _plane;
-  QImage *_image;
-  double _im_width;
-  double _im_height;
+public:
+  bool intersect(const Ray &ray, Plane &intersection_plane) const;
+  bool inside(const Ray&) const {return false;}
+  Color get_color(const Vector &intersection_point) const;
 };

@@ -1,13 +1,38 @@
 #include <sstream>
 
+#include "ball.h"
 #include "camera.h"
+#include "cube.h"
+#include "function_plot.h"
 #include "mpi_manager.h"
+#include "plane_shape.h"
 #include "ray_diagram.h"
 #include "utilities.h"
 
 using namespace std;
 
-RayDiagram::RayDiagram() :
+QColor RayDiagram::color_of_shape(const Shape* shape)
+{
+  if(dynamic_cast<const Ball*>(shape)) {
+    return QColor(255, 0, 0);
+  }
+  else if(dynamic_cast<const Cube*>(shape)) {
+    return QColor(0, 0, 255);
+  }
+  else if(dynamic_cast<const FunctionPlot*>(shape)) {
+    return QColor(255, 255, 0);
+  }
+  else if(dynamic_cast<const PlaneShape*>(shape)) {
+    return QColor(0, 255, 255);
+  }
+  else {
+    return QColor(255, 255, 255);
+  }
+}
+
+RayDiagram::RayDiagram(const Scene &scene, const Camera &camera) :
+  _scene(scene),
+  _camera(camera),
   _width(300),
   _height(800),
   _y0(-1),
@@ -51,59 +76,79 @@ void RayDiagram::parse(const string &command, istream &stream)
   }
 }
 
-void RayDiagram::init(const Camera &camera)
+void RayDiagram::init()
 {
-  if(mpi.size() > 1) {
-    display_warning("RayDiagram runs only in serial mode.");
-  }
-
   if(!_enabled)
     display_error("RayDiagram disabled.");
 
-  _position = camera.position();
   double ds = _range / _height;
-  _transformation_matrix = Matrix( ds*(camera.viewing_direction() ^ camera.top_direction()),
-                                  -ds*camera.viewing_direction(),
-                                   ds*camera.top_direction() ).inv();
-  _resolution_x = camera.resolution_x();
+  _transformation_matrix = Matrix( ds*(_camera.viewing_direction() ^ _camera.top_direction()),
+                                  -ds*_camera.viewing_direction(),
+                                   ds*_camera.top_direction()       ).inv();
+
   if(_y0 < 0) {
-    _y0 = camera.resolution_y()/2;
+    _y0 = _camera.resolution_y()/2;
   }
-  
+
   _image = QImage(_width, _height, QImage::Format_RGB32);
   delete _painter;
   _painter = new QPainter(&_image);
 }
 
-void RayDiagram::add(const Ray &ray, double distance, double ratio)
+void RayDiagram::track()
 {
   if(!_enabled)
     display_error("RayDiagram disabled.");
 
-  if(_pixel_in_progress_y == _y0) {
-    Vector origin =       _transformation_matrix * (ray.origin() - _position);
-    Vector intersection = _transformation_matrix * (ray.origin() + distance * ray.direction() - _position);
-    origin       += Vector(_width/2, _height, 0);
-    intersection += Vector(_width/2, _height, 0);
+  const vector<TrackingData> &data = _scene.tracking_data();
 
-    _painter->setPen(QPen(QColor(255, 0, 0), 2));
-    _painter->drawPoint(intersection.x(), intersection.y());
+  //track rays
+  _scene.clear_tracking();
+  _scene.start_tracking();
+  for(int i=0; i<_camera.resolution_x(); i+=_camera.resolution_x() / (_number_rays-1)) {
+    Vector v = _camera.film_top_left_direction() + _y0*_camera.film_dy() + i*_camera.film_dx();
+    _scene.raytracer(Ray(_camera.position(), v));
+  }
+  _scene.stop_tracking();
 
-    if(_pixel_in_progress_x % (_resolution_x / (_number_rays-1)) == 0) {
-      _painter->setPen(QPen(QColor(0, 200*ratio+55, 0), 2));
-      _painter->drawLine(origin.x(), origin.y(), intersection.x(), intersection.y());
-    }
+  for(int i=0; i<data.size(); i++) {
+    paint_ray(data[i].ray, data[i].distance, data[i].ratio);
   }
 
+  //track shapes
+  _scene.clear_tracking();
+  _scene.start_tracking();
+  for(int i=0; i<_camera.resolution_x(); i++) {
+    Vector v = _camera.film_top_left_direction() + _y0*_camera.film_dy() + i*_camera.film_dx();
+    _scene.raytracer(Ray(_camera.position(), v));
+  }
+  _scene.stop_tracking();
+
+  for(int i=0; i<data.size(); i++) {
+    paint_shape(data[i].ray, data[i].shape, data[i].distance);
+  }
 }
 
-void RayDiagram::set_pixel_in_progress(int x, int y)
+void RayDiagram::paint_ray(const Ray &ray, double distance, double ratio)
 {
-  if(!_enabled)
-    display_error("RayDiagram disabled.");
+  Vector origin =       _transformation_matrix * (ray.origin() - _camera.position());
+  Vector intersection = _transformation_matrix * (ray.origin() + distance * ray.direction() - _camera.position());
+  origin       += Vector(_width/2, _height, 0);
+  intersection += Vector(_width/2, _height, 0);
 
-  _pixel_in_progress_x = x;
-  _pixel_in_progress_y = y;
+  _painter->setPen(QPen(QColor(0, 200*ratio+55, 0), 2));
+  _painter->drawLine(origin.x(), origin.y(), intersection.x(), intersection.y());
+}
+
+void RayDiagram::paint_shape(const Ray &ray, const Shape *shape, double distance)
+{
+  Vector origin =       _transformation_matrix * (ray.origin() - _camera.position());
+  Vector intersection = _transformation_matrix * (ray.origin() + distance * ray.direction() - _camera.position());
+  origin       += Vector(_width/2, _height, 0);
+  intersection += Vector(_width/2, _height, 0);
+
+  _painter->setPen(QPen(color_of_shape(shape), 2));
+  _painter->drawPoint(intersection.x(), intersection.y());
 }
 
 void RayDiagram::save() const

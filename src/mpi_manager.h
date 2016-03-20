@@ -16,20 +16,32 @@ enum Order {
   ORDER_PARSE,
   ORDER_INIT,
   ORDER_CAMERA_DATA,
-  ORDER_RAYTRACE
+  ORDER_RAYTRACE,
+  ORDER_IDLE_SLEEP
 };
 
 class MPI_Manager
 {
+private:
+  static bool singleton_exists;
+
+  const int tag_data;
+  const int tag_order;
+
+  MPI_Comm _comm;
+  int _size;
+  int _rank;
+  MPI_Status _status;
+
 public:
   MPI_Manager();
 
   void init(int argc, char** argv);
   void finalize();
     
-  unsigned int rank() const  { return _rank; }
-  unsigned int size() const  { return _size; }
-  MPI_Comm  get_comm() const { return _comm; }
+  int rank() const  { return _rank; }
+  int size() const  { return _size; }
+  MPI_Comm comm() const { return _comm; }
 
 
   void recv_order (Order    &i, int source=0);
@@ -49,15 +61,4 @@ public:
 
   void recv_light_beam(      LightBeam &lb, int source=0);
   void send_light_beam(const LightBeam &lb, int dest  =0);
-
- private:
-  const int tag_data;
-  const int tag_order;
-
-  MPI_Comm _comm;
-  int _size;
-  int _rank;
-  MPI_Status status;
-
-  static bool singleton_exists;
 };

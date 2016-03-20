@@ -7,13 +7,37 @@
 
 class Lens
 {
+private:
+  const double _wavelength_light;
+  const int _integration_nodes_radius;
+
+  std::map < int, Polygon* > _aperture_shapes;
+  std::map < double, std::map < double, std::complex < double > > > _diffraction_pattern;
+
+  double _aperture;
+  double _focus;
+  double _focal_length;
+  int _blades;
+
+
 public:
   Lens();
   ~Lens();
   double blur_diameter(double distance) const;
-  Polygon& aperture_shape(int radius);
-  std::complex<double> diffraction_pattern(double x_0, double y_0);
 
+public:
+  Polygon& aperture_shape(int radius);
+private:
+  void clear_aperture_shapes();
+
+public:
+  std::complex<double> diffraction_pattern(double x_0, double y_0);
+private:
+  std::complex<double> integrate_diffraction_pattern(double x_0, double y_0);
+  double r(double x_0, double y_0, double x, double y) const;
+  void clear_diffraction_pattern();
+
+public:
   double aperture() const           {return _aperture;}
   int    blades() const             {return _blades;}
   double focus() const              {return _focus;}
@@ -24,21 +48,5 @@ public:
   void set_focus(double d)          {_focus = d;}
   void set_focal_length(double d)   {_focal_length = d; clear_diffraction_pattern();}
 
-private:
-  void clear_aperture_shapes();
-  void clear_diffraction_pattern();
-  std::complex<double> integrate_diffraction_pattern(double x_0, double y_0);
-  double r(double x_0, double y_0, double x, double y) const;
 
-private:
-  double _aperture;
-  double _focus;
-  double _focal_length;
-  int _blades;
-
-  std::map < int, Polygon* > _aperture_shapes;
-  std::map < double, std::map < double, std::complex < double > > > _diffraction_pattern;
-
-  const double _lambda;
-  const int _integration_nodes_radius;
 };

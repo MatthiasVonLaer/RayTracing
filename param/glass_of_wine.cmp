@@ -1,0 +1,22 @@
+cylinder base  position 0 0 .0025
+cylinder base  height .005  radius .05
+cylinder base  transparent color_filter 20 15 20  refraction_index 1.5
+
+function_plot stalk  position 0 0 .1025    width .1  depth .1  height .195
+function_plot stalk  function_0  0
+function_plot stalk  function_1  1/(x^2+y^2)
+function_plot stalk  xrange -5 5  yrange -5 5  zrange .04 5
+function_plot stalk  transparent  color_filter 20 15 20  refraction_index 1.5
+
+function_plot glass  position 0 0 .25    width .3  depth .3  height .1
+function_plot glass  function_0  x^2 + y^2
+function_plot glass  function_1  x^2 + y^2 + .05
+function_plot glass  xrange -2 2  yrange -2 2  zrange 0 1
+function_plot glass  transparent  color_filter 20 15 20  refraction_index 1.5
+
+function_plot wine  position 0 0 .25    width .3  depth .3  height .1
+function_plot wine  function_0  x^2 + y^2 + .05
+function_plot wine  function_1  .8
+function_plot wine  xrange -2 2  yrange -2 2  zrange 0 1 
+function_plot wine  transparent  color_filter 10 100 70  refraction_index 1.5
+

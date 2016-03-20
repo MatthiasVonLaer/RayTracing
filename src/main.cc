@@ -3,6 +3,8 @@
 #include <fstream>
 #include <stdlib.h>
 
+#include <QApplication>
+
 #include "controller.h"
 #include "mpi_manager.h"
 #include "slave.h"
@@ -15,22 +17,12 @@ MPI_Manager mpi;
 
 int main(int argc, char *argv[])
 {
-  if(argc == 1) {
-    Lens lens;
-    lens.set_blades(4);
-    lens.set_focal_length(.005);
-    lens.set_aperture(22);
-    double s = .00;
-    s /= sqrt(2);
-    cout << sqrt(norm(lens.diffraction_pattern(s, s))) << endl;
-    return 0;
-  }
-
   mpi.init(argc,argv);
 
   if(mpi.rank() == 0) {
 
-    Controller controller;
+    QApplication app(argc, argv);
+    Controller controller(app);
 
     if(argc == 1) {
       controller.parse(cin);

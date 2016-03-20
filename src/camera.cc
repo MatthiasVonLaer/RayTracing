@@ -5,13 +5,19 @@
 #include <stdlib.h>
 
 #include "camera.h"
+#include "complex_light_beam.h"
 #include "mpi_manager.h"
 #include "polygon.h"
 #include "utilities.h"
 
 using namespace std;
 
-Camera::Camera(Display &display) :
+Camera::Camera(const Scene &scene, Display &display) :
+  _scene(scene),
+  _display(display),
+
+  _initialized(false),
+
   _output_filename   ("raytracer.jpg"),
   _resolution_x      (750),
   _resolution_y      (500),
@@ -23,6 +29,8 @@ Camera::Camera(Display &display) :
   _exposure          (0),
   _gamma             (1),
 
+  _cut_bright_lights (0),
+
   _depth_of_field    (false),
   _diffraction       (false),
 
@@ -31,14 +39,14 @@ Camera::Camera(Display &display) :
 
   _position          (Vector()),
   _viewing_direction (Vector(0, 1, 0)),
-  _top_direction     (Vector(0, 0, 1)),
-
-  _display(display)
+  _top_direction     (Vector(0, 0, 1))
 {
 }
 
 void Camera::parse(const string &command, istream &stream)
 {
+  _initialized = false;
+
   if(command == "aperture") {
     char c;
     stream >> c;
@@ -56,6 +64,9 @@ void Camera::parse(const string &command, istream &stream)
   }
   else if(command == "colorization") {
     stream >> _colorization;
+  }
+  else if(command == "cut_bright_lights") {
+    stream >> _cut_bright_lights;
   }
   else if(command == "diffraction") {
     stream >> _diffraction;
@@ -109,38 +120,6 @@ void Camera::parse(const string &command, istream &stream)
   }
 }
 
-void Camera::take_picture(const Scene *scene)
-{
-  _display.start_timer();
-
-  rename_previous_output();
-  shutter(scene);
-  develop();
-  _film.save(_output_filename.c_str(), 0, 100);
-
-  _display.stop_timer();
-  _display.add_mpix(_resolution_x * _resolution_y);
-}
-
-void Camera::rename_previous_output() const
-{
-  if(file_exists(_output_filename)) {
-    for(int i=1; ; i++) {
-      size_t found = _output_filename.find_last_of('.');
-
-      stringstream stream;
-      stream << _output_filename.substr(0, found) << i << _output_filename.substr(found);
-      string new_filename = stream.str();
-
-
-      if(!file_exists(new_filename)) {
-        rename(_output_filename.c_str(), new_filename.c_str());
-        break;
-      }
-    }
-  }
-}
-
 void Camera::initialize()
 {
   //normalize and orthogonalize directions
@@ -181,19 +160,35 @@ void Camera::initialize()
 
   _film_dx = right_direction * (film_size_x / (_resolution_x-1));
   _film_dy = -_top_direction * (film_size_y / (_resolution_y-1));
+
+  _initialized = true;
 }
 
-void Camera::shutter(const Scene *scene)
+
+void Camera::take_picture()
+{
+  if(!_initialized) {
+    display_error("Camera not initialized.");
+  }
+
+  _display.start_timer();
+
+  shutter();
+  develop();
+  save();
+
+  _display.stop_timer();
+  _display.add_mpix(_resolution_x * _resolution_y);
+}
+
+void Camera::shutter()
 {
   if(mpi.size() == 1) {
     for(int j=0; j<_resolution_y; j++) {
       for(int i=0; i<_resolution_x; i++) {
 
-        _shutter_pixel_x = i;
-        _shutter_pixel_y = j;
-
         Vector v = _film_top_left_direction + j*_film_dy + i*_film_dx;
-        _light_beams[i][j] = scene->raytracer(Ray(_position, v));
+        _light_beams[i][j] = _scene.raytracer(Ray(_position, v));
 
       }
       _display.progress("RayTracing", double(j)/_resolution_y);
@@ -202,6 +197,9 @@ void Camera::shutter(const Scene *scene)
 
   else {
     for(int i=1; i<mpi.size(); i++) {
+      mpi.send_order(ORDER_IDLE_SLEEP, i);
+      mpi.send_int(false, i);
+
       mpi.send_order(ORDER_CAMERA_DATA, i);
       mpi.send_int(_resolution_x, i);
       mpi.send_vector(_position, i);
@@ -242,17 +240,21 @@ void Camera::shutter(const Scene *scene)
       }
 
     }
+    for(int i=1; i<mpi.size(); i++) {
+      mpi.send_order(ORDER_IDLE_SLEEP, i);
+      mpi.send_int(true, i);
+    }
   }
 }
 
 void Camera::develop()
 {
-  if(_diffraction) {
-    diffraction();
-  }
-
   if(_depth_of_field) {
     depth_of_field();
+  }
+
+  if(_diffraction) {
+    diffraction();
   }
 
   if(_colorization == "bw") {
@@ -263,21 +265,14 @@ void Camera::develop()
     vignette();
   }
 
-  double lum_max = maximal_luminosity();
 
-  //calculate exposure range
-  double range_max = lum_max * pow(2, -_exposure);
+  double range_max;
   double range_min;
-  if(_exposure_range < 0)
-    range_min = 0;
-  else
-    range_min = range_max * pow(2, - _exposure_range);
+  calculate_exposure_range(range_min, range_max);
 
 
   for(int i=0; i<_resolution_x; i++) {
     for(int j=0; j<_resolution_y; j++) {
-      double faktor = 255 / lum_max;
-
       _film.setPixel(i, j, qRgb(develop_beam(_light_beams[i][j].red()  , range_min, range_max),
             develop_beam(_light_beams[i][j].green(), range_min, range_max),
             develop_beam(_light_beams[i][j].blue() , range_min, range_max) ));
@@ -286,57 +281,41 @@ void Camera::develop()
   }
 }
 
-void Camera::diffraction()
+double Camera::calculate_exposure_range(double &range_min, double &range_max)
 {
-  double lum_max = maximal_luminosity();
+  //create histogram
+  map<double, int> histogram;
 
-  vector< vector< complex<double> > > diffracted_beams;
-  diffracted_beams.resize(_resolution_x);
   for(int i=0; i<_resolution_x; i++) {
-    diffracted_beams[i].resize(_resolution_y);
     for(int j=0; j<_resolution_y; j++) {
-      diffracted_beams[i][j] = 0;
-    }
-  }
-  for(int i=0; i<_resolution_x; i++) {
-    _display.progress("Diffraction", double(i)/_resolution_x);
-    for(int j=0; j<_resolution_y; j++) {
-      if(_light_beams[i][j].luminosity() < .8 * lum_max) {
-        diffracted_beams[i][j] += _light_beams[i][j].luminosity();
-        continue;
+      double lum = _light_beams[i][j].luminosity();
+      if(histogram.count(lum)) {
+        histogram[lum]++;
       }
-
-      int n = 50;
-      double ds = _film_dx.norm();
-      for(int a=-n; a<=n; a++) {
-        for(int b=-n; b<=n; b++) {
-          if(i+a>=0 && j+b>=0 && i+a<_resolution_x && j+b<_resolution_y) {
-            diffracted_beams[i+a][j+b] += _light_beams[i][j].luminosity() *_lens.diffraction_pattern(a*ds, b*ds);
-          }
-        }
+      else {
+        histogram[lum] = 1;
       }
-
     }
+    _display.progress("Histogram", double(i)/_resolution_x);
   }
-  for(int i=0; i<_resolution_x; i++) {
-    for(int j=0; j<_resolution_y; j++) {
-      double l = norm(diffracted_beams[i][j]);
-      _light_beams[i][j] = LightBeam(l, l, l);
-    }
-  }
-}
 
-double Camera::maximal_luminosity()
-{
+  //cut bright lights
+  int n=0;
   double lum_max = 0;
-  for(int i=0; i<_resolution_x; i++) {
-    for(int j=0; j<_resolution_y; j++) {
-      if(_light_beams[i][j].luminosity() > lum_max) {
-        lum_max = _light_beams[i][j].luminosity();
-      }
+  for(map<double, int>::reverse_iterator it = histogram.rbegin(); it != histogram.rend(); it++) {
+    n += it->second;
+    if(n > _cut_bright_lights * _resolution_x * _resolution_y) {
+      lum_max = it->first;
+      break;
     }
   }
-  return lum_max;
+
+  //calculate exposure range
+  range_max = lum_max * pow(2, -_exposure);
+  if(_exposure_range < 0)
+    range_min = 0;
+  else
+    range_min = range_max * pow(2, - _exposure_range);
 }
 
 void Camera::depth_of_field()
@@ -367,6 +346,65 @@ void Camera::depth_of_field()
       }
       _light_beams[i][j] /= N;
 
+    }
+  }
+}
+
+void Camera::diffraction()
+{
+  display_warning("Diffraction runs in experimental mode.");
+
+  double range_max;
+  double range_min;
+  calculate_exposure_range(range_min, range_max);
+
+
+  vector< vector< ComplexLightBeam > > diffracted_beams;
+  diffracted_beams.resize(_resolution_x);
+  for(int i=0; i<_resolution_x; i++) {
+    diffracted_beams[i].resize(_resolution_y);
+  }
+  for(int i=0; i<_resolution_x; i++) {
+    _display.progress("Diffraction", double(i)/_resolution_x);
+    for(int j=0; j<_resolution_y; j++) {
+
+      int length_max = 50;
+      double ds = _film_dx.norm();
+
+      LightBeam beam_root = _light_beams[i][j] ^ .5;
+      diffracted_beams[i][j] += beam_root * _lens.diffraction_pattern(0, 0);
+
+      for(int length=1; length < length_max; length++) {
+        if(i-length>=0 && j-length>=0 && i+length<_resolution_x && j+length<_resolution_y) {
+          bool visible = false;
+          for(int s=-length; s<length; s++) {
+            double radius = sqrt(length*length + s*s);
+            double factor = (length_max - radius) / length_max;
+            if(radius >= length_max) {
+              continue;
+            }
+            diffracted_beams[i+s][j+length] += beam_root * (_lens.diffraction_pattern(s*ds, length*ds) * factor);
+            diffracted_beams[i+s][j-length] += beam_root * (_lens.diffraction_pattern(s*ds, -length*ds) * factor);
+            diffracted_beams[i+length][j+s] += beam_root * (_lens.diffraction_pattern(length*ds, s*ds) * factor);
+            diffracted_beams[i-length][j+s] += beam_root * (_lens.diffraction_pattern(-length*ds, s*ds) * factor);
+            if((beam_root * _lens.diffraction_pattern(s*ds, length*ds)).luminosity() > pow(range_min, .5)) {
+              visible = true;
+            }
+          }
+          if(!visible) {
+            break;
+          }
+        }
+        else {
+          break;
+        }
+      }
+
+    }
+  }
+  for(int i=0; i<_resolution_x; i++) {
+    for(int j=0; j<_resolution_y; j++) {
+      _light_beams[i][j] = abs_beam(diffracted_beams[i][j]) ^ 2;
     }
   }
 }
@@ -421,4 +459,43 @@ int Camera::develop_beam(double l, double range_min, double range_max)
   }
 
   return 255 * pow(color, _gamma);
+}
+
+void Camera::save() const
+{
+  rename_previous_output();
+  _film.save(_output_filename.c_str(), 0, 100);
+}
+
+void Camera::rename_previous_output() const
+{
+  if(file_exists(_output_filename)) {
+    for(int i=1; ; i++) {
+      size_t found = _output_filename.find_last_of('.');
+
+      stringstream stream;
+      stream << _output_filename.substr(0, found) << i << _output_filename.substr(found);
+      string new_filename = stream.str();
+
+
+      if(!file_exists(new_filename)) {
+        rename(_output_filename.c_str(), new_filename.c_str());
+        break;
+      }
+    }
+  }
+}
+
+
+Vector Camera::film_coordinates(Vector point) const
+{
+  double z_distance = (point - _position) * _viewing_direction;
+  if(z_distance < 0) {
+    display_warning("z_dist < 0");
+  }
+
+  double x = ((point - _position) * _film_dx.normalized()) * _lens.focal_length() /_film_dx.norm()/ z_distance ; 
+  double y = ((point - _position) * _film_dy.normalized()) * _lens.focal_length() /_film_dy.norm()/ z_distance ;
+
+  return Vector(x + _resolution_x/2., y + _resolution_y/2., 0);
 }

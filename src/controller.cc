@@ -1,25 +1,19 @@
 #include <iostream>
 
 #include "controller.h"
+#include "gui.h"
 #include "mpi_manager.h"
 #include "utilities.h"
 
 using namespace std;
 
-Controller::Controller() :
-  _scene(0),
-  _ray_diagram(),
+Controller::Controller(QApplication &app) :
+  _app(app),
+  _scene(),
   _display(),
-  _camera(_display)
+  _camera(_scene, _display),
+  _ray_diagram(_scene, _camera)
 {
-  if(mpi.size() == 1) {
-    _scene = new Scene(&_ray_diagram);
-  }
-}
-
-Controller::~Controller()
-{
-  delete _scene;
 }
 
 void Controller::parse(istream &in)
@@ -37,6 +31,9 @@ void Controller::parse(istream &in)
 
     if(command.size() == 0) {
       continue;
+    }
+    else if(command == "launch_gui") {
+      launch_gui();
     }
     else if(command == "take_picture") {
       take_picture();
@@ -63,19 +60,17 @@ void Controller::parse(istream &in)
       }
     }
     else {
-      if(mpi.size() > 1) {
-        for(int i=1; i<mpi.size(); i++) {
-          mpi.send_order(ORDER_PARSE, i);
-          mpi.send_string(command + rest_of_line, i);
-        }
-      }
-      else {
-        _scene->parse(command + rest_of_line);
+      _scene.parse(command + rest_of_line);
+
+      for(int i=1; i<mpi.size(); i++) {
+        mpi.send_order(ORDER_PARSE, i);
+        mpi.send_string(command + rest_of_line, i);
       }
     }
   }
 
   //quit
+  cout << "\r";
   _display.summary();
 
   for(int i=1; i<mpi.size(); i++) {
@@ -88,16 +83,12 @@ void Controller::initialize()
   _camera.initialize();
 
   if(_ray_diagram.enabled()) {
-    _ray_diagram.init(_camera);
+    _ray_diagram.init();
   }
 
-  if(mpi.size() == 1) {
-    _scene->init();
-  }
-  else {
-    for(int i=1; i<mpi.size(); i++) {
-      mpi.send_order(ORDER_INIT, i);
-    }
+  _scene.init();
+  for(int i=1; i<mpi.size(); i++) {
+    mpi.send_order(ORDER_INIT, i);
   }
 }
 
@@ -105,12 +96,22 @@ void Controller::take_picture()
 {
   initialize();
 
-  _camera.take_picture(_scene);
+  _camera.take_picture();
 
   if(_ray_diagram.enabled()) {
+    _ray_diagram.track();
     _ray_diagram.save();
   }
 
   _display.progress("Done", 1);
   cout << endl;
+}
+
+void Controller::launch_gui()
+{
+  _display.progress("Gui", 0);
+
+  Gui gui(_scene, _camera);
+  gui.showMaximized();
+  _app.exec();
 }

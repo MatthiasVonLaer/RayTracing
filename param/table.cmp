@@ -1,2 +1,19 @@
-ball 0  position 0 10 0
-ball 0  silvered 1
+cube board  position 0 0 .79
+cube board  image_all_sides img/wood2.jpg
+cube board  width 1.6  depth 1  height .02
+
+cube leg0  position .7 .4 .4
+cube leg0  image_all_sides img/wood2.jpg
+cube leg0  width .05  depth .05  height .79 
+
+cube leg1  position -.7 .4 .4
+cube leg1  image_all_sides img/wood2.jpg
+cube leg1  width .05  depth .05  height .79 
+
+cube leg2  position .7 -.4 .4
+cube leg2  image_all_sides img/wood2.jpg
+cube leg2  width .05  depth .05  height .79 
+
+cube leg3  position -.7 -.4 .4
+cube leg3  image_all_sides img/wood2.jpg
+cube leg3  width .05  depth .05  height .79 

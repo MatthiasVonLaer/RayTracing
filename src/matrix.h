@@ -6,6 +6,9 @@
 
 class Matrix
 {
+private:
+  double _a[3][3];
+
 public:
   Matrix(double a00, double a01, double a02, double a10, double a11, double a12, double a20, double a21, double a22);
   Matrix(double A[3][3]);
@@ -26,7 +29,4 @@ public:
 
 private:
   double cofactor(int i, int j) const;
-
-private:
-  double _a[3][3];
 };

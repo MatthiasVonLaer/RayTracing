@@ -1,0 +1,50 @@
+// length unit: 1000km
+
+camera output_filename    out/scene.jpg
+camera resolution         2250 1500
+camera crop_factor        1.5
+camera focal_length       300 //mm
+camera aperture           f/1.4
+//camera focus              300 
+camera aperture_blades    4
+//camera diffraction        1
+
+camera position           0 -300 0
+camera viewing_direction  0 1 0
+camera top_direction      0 0 1
+
+camera gamma              1
+camera exposure_range     5//stops
+camera exposure           0//ev
+
+camera colorization       rgb
+camera vignette           -2
+camera noise              0.2
+
+raytracer recursion_break_ratio  .01
+raytracer recursion_break_depth  10
+
+ray_diagram rays 35  range 15  y0 700
+ray_diagram width 800  height 2000 
+ray_diagram output_file diagram.jpg
+
+compositions_dir param/
+
+ambient_light   color 255 255 255  lux 0.2
+
+light sun  position 150e3 0 55e3  color 255 220 200  lumen 1e14
+light sun  radius 700
+
+ball earth  position 0 0 0  radius 12.7
+ball earth  image img/earth_clouds_wikipedia.jpg
+
+ball moon  position 0 380 34  radius 1.7
+ball moon  image img/moon.jpg
+
+
+take_picture
+launch_gui
+quit
+
+
+

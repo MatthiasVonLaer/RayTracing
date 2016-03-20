@@ -1,18 +1,26 @@
 #include <iostream>
 #include <string>
+#include <unistd.h>
 
 #include "slave.h"
 
 using namespace std;
 
 Slave::Slave() :
-  _scene(0)
+  _idle_sleep(true)
 {
 }
 
 void Slave::loop()
 {
   while(true) {
+
+    int flag = 0;
+    while(_idle_sleep && !flag) {
+      MPI_Iprobe(0, MPI_ANY_TAG, mpi.comm(), &flag, 0);
+      usleep(1000);
+    }
+
     Order order;
     mpi.recv_order(order);
     
@@ -21,6 +29,7 @@ void Slave::loop()
     else if(order == ORDER_INIT)        init();
     else if(order == ORDER_CAMERA_DATA) camera_data();
     else if(order == ORDER_RAYTRACE)    raytrace();
+    else if(order == ORDER_IDLE_SLEEP)  set_idle();
   }
 }
 
@@ -64,4 +73,11 @@ void Slave::raytrace()
     mpi.send_light_beam(light_beams[i]);
   }
 
+}
+
+void Slave::set_idle()
+{
+  int idle;
+  mpi.recv_int(idle);
+  _idle_sleep = idle;
 }

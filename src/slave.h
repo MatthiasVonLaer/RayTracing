@@ -6,15 +6,6 @@
 
 class Slave
 {
-public:
-  Slave();
-  void loop();
-private:
-  void parse();
-  void init();
-  void camera_data();
-  void raytrace();
-
 private:
   Scene _scene;
 
@@ -23,4 +14,17 @@ private:
   Vector _camera_film_top_left_direction;
   Vector _camera_film_dx;
   Vector _camera_film_dy;
+
+  bool _idle_sleep;
+
+public:
+  Slave();
+  void loop();
+
+private:
+  void parse();
+  void init();
+  void camera_data();
+  void raytrace();
+  void set_idle();
 };

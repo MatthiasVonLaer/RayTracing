@@ -2,22 +2,25 @@
 
 #include <istream>
 
+#include <QApplication>
+
 #include "camera.h"
 #include "ray_diagram.h"
 #include "scene.h"
 
 class Controller
 {
+private:
+  Camera _camera;
+  Scene _scene;
+  Display _display;
+  RayDiagram _ray_diagram;
+  QApplication &_app;
+
 public:
-  Controller();
-  ~Controller();
+  Controller(QApplication &app);
   void parse(std::istream &in);
   void initialize();
   void take_picture();
-
-private:
-  Camera _camera;
-  RayDiagram _ray_diagram;
-  Display _display;
-  Scene *_scene;
+  void launch_gui();
 };
