@@ -1,0 +1,5 @@
+The input images for creating the raytraced pictures are free images and can be found at:
+
+- visibleearth.nasa.gov
+- en.wikipedia.org
+- johnstonsarchive.net

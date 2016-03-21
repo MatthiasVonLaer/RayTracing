@@ -1,5 +1,0 @@
-Image sources:
-
-- visibleearth.nasa.gov
-- en.wikipedia.org
-- johnstonsarchive.net
