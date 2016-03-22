@@ -37,9 +37,11 @@ int main(int argc, char *argv[])
     QApplication app(argc, argv);
     Controller controller(app);
 
+    //Piped
     if(argc == 1) {
       controller.parse(cin);
     }
+    //Input file
     else if(argc == 2) {
       ifstream input(argv[1]);
       if(input.is_open()) {
