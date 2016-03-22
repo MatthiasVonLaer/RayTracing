@@ -20,6 +20,7 @@ private:
 public:
   Controller(QApplication &app);
   void parse(std::istream &in);
+private:
   void initialize();
   void take_picture();
   void launch_gui();
