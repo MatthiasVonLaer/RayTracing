@@ -24,8 +24,6 @@
 #include "mpi_manager.h"
 #include "slave.h"
 
-#include "lens.h"
-
 using namespace std;
 
 MPI_Manager mpi;
