@@ -48,39 +48,39 @@ void MPI_Manager::finalize()
 
 void MPI_Manager::recv_order(Order &i,int source)
 {
-  assert(MPI_Recv(&i,1,MPI_INT,source,tag_order,_comm,&_status)==0);
+  MPI_Recv(&i,1,MPI_INT,source,tag_order,_comm,&_status);
 }
 
 void MPI_Manager::send_order(Order i,int dest)
 {
-  assert(MPI_Ssend(&i,1,MPI_INT,dest,tag_order,_comm)==0);
+  MPI_Ssend(&i,1,MPI_INT,dest,tag_order,_comm);
 }
 
 void MPI_Manager::recv_int(int &i,int source)
 {
-  assert(MPI_Recv(&i,1,MPI_INT,source,tag_data,_comm,&_status)==0);
+  MPI_Recv(&i,1,MPI_INT,source,tag_data,_comm,&_status);
 }
 
 void MPI_Manager::send_int(int i,int dest)
 {
-  assert(MPI_Ssend(&i,1,MPI_INT,dest,tag_data,_comm)==0);
+  MPI_Ssend(&i,1,MPI_INT,dest,tag_data,_comm);
 }
 
 void MPI_Manager::recv_double(double &i,int source)
 {
-  assert(MPI_Recv(&i,1,MPI_DOUBLE,source,tag_data,_comm,&_status)==0);
+  MPI_Recv(&i,1,MPI_DOUBLE,source,tag_data,_comm,&_status);
 }
 
 void MPI_Manager::send_double(double i,int dest)
 {
-  assert(MPI_Ssend(&i,1,MPI_DOUBLE,dest,tag_data,_comm)==0);
+  MPI_Ssend(&i,1,MPI_DOUBLE,dest,tag_data,_comm);
 }
 
 void MPI_Manager::send_string(const std::string &s,int dest)
 {
   int size = s.size();
   send_int(size,dest);
-  assert(MPI_Ssend((void *) s.c_str(),s.size(),MPI_CHAR,dest,tag_data,_comm)==0);
+  MPI_Ssend((void *) s.c_str(),s.size(),MPI_CHAR,dest,tag_data,_comm);
 }
 
 void MPI_Manager::recv_string(std::string &s,int source)
@@ -89,7 +89,7 @@ void MPI_Manager::recv_string(std::string &s,int source)
   recv_int(size,source);
   s.resize(size);
   
-  assert(MPI_Recv((void *) s.c_str(),s.size(),MPI_CHAR,source,tag_data,_comm,&_status)==0);  
+  MPI_Recv((void *) s.c_str(),s.size(),MPI_CHAR,source,tag_data,_comm,&_status);
 }
 
 void MPI_Manager::recv_vector(      Vector &v, int source)

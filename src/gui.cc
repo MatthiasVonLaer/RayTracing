@@ -37,7 +37,7 @@ Gui::Gui(const Scene &scene, Camera &camera) :
 {
   _scene.clear_tracking();
 
-  double ratio = sqrt(225.*150. / (_res_x * _res_y));
+  double ratio = sqrt(300.*200. / (_res_x * _res_y));
   _res_live_x = ratio * _res_x;
   _res_live_y = ratio * _res_y;
 

@@ -14,6 +14,7 @@ camera top_direction      0 0 1
 camera gamma              1
 camera exposure_range     8//stops
 camera exposure           0//ev
+camera cut_bright_lights  .05
 
 camera colorization       rgb
 camera vignette           -2

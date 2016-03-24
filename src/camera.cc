@@ -344,7 +344,9 @@ void Camera::depth_of_field()
       double blur_diameter = _lens.blur_diameter( beams_copy[i][j].depth() );
       int blur_radius_pixel = blur_diameter / (_film_dx.norm()) / 2;
       if(blur_radius_pixel < 0) {
-        cout << blur_radius_pixel << endl;
+        stringstream stream;
+        stream << "Blur_radius_pixel = " <<  blur_radius_pixel;
+        display_warning(stream.str());
         blur_radius_pixel = 0;
       }
 
