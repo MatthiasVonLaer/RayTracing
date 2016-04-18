@@ -14,10 +14,12 @@
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
+
 #include <vector>
 #include <set>
 #include <map>
 #include <string>
+
 #include <mpi.h>
 
 #include "light_beam.h"

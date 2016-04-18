@@ -272,23 +272,21 @@ LightBeam Scene::refraction(const Ray &ray, const Plane &intersection_plane, con
     n1 = inside_shape->refraction_index();
   if(inside_shape_2)
     n2 = inside_shape_2->refraction_index();
-  double n = n2/n1;
 	
-  Vector tangential = (ray.direction() - normal * (ray.direction() * normal)) / n;
-  double refKoeff;
+  //Snell's law
+  Vector tangential = (ray.direction() - normal * (ray.direction() * normal));
+  tangential *= n1/n2;
+
   if(is_greater( 1, tangential.norm2() )) {
     Vector p = intersection_plane.origin();
     Vector u = tangential + normal * sqrt(1 - tangential.norm2());
     Ray refraction_ray(p, u);
 
-    //Schlick's approximation
-    double R_0 = pow( (n1 - n2) / (n1 + n2), 2);
-    R_0 += (1-R_0) * intersection_shape->silvered();
-    double reflection_coefficient;
-    if(n > 1)
-      reflection_coefficient = R_0 + (1 - R_0) * pow(1 - ray.direction()*normal, 5);
-    else
-      reflection_coefficient = R_0 + (1 - R_0) * pow(1 - refraction_ray.direction()*normal, 5);
+    //Fresnel equation (for simplicity only for perpendicular polarized light)
+    double cos_theta_t = refraction_ray.direction() * normal; //transmission ray
+    double cos_theta_i = ray.direction()            * normal; //incident ray
+    double reflection_coefficient = pow( (n1 * cos_theta_i - n2 * cos_theta_t) / (n1 * cos_theta_i + n2 * cos_theta_t), 2 );
+    reflection_coefficient += (1-reflection_coefficient) * intersection_shape->silvered();
 
     LightBeam lightbeam;
     if(is_greater(ratio*reflection_coefficient, _recursion_break_ratio)) {
@@ -299,8 +297,9 @@ LightBeam Scene::refraction(const Ray &ray, const Plane &intersection_plane, con
     }
     return lightbeam;
   }
-  else
+  else {
     return reflection(ray, intersection_plane, inside_shape, ratio, depth);
+  }
 }
 
 LightBeam Scene::scattered_light(const Plane &intersection_plane, const Color &color) const

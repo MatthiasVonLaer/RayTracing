@@ -58,6 +58,7 @@ public:
   bool	 operator!=(const Vector &cv) const        {return !is_equal(_x, cv.x()) || !is_equal(_y, cv.y()) || !is_equal(_z, cv.z());}
 
   void   operator*=(double d)                      {_x*=d; _y*=d; _z*=d;}
+  void   operator/=(double d)                      {_x/=d; _y/=d; _z/=d;}
   Vector operator*(double d) const                 {return Vector(_x*d, _y*d, _z*d);}
   Vector operator/(double d) const                 {return Vector(_x/d, _y/d, _z/d);}
   Vector operator-(void) const                     {return Vector(-_x, -_y, -_z);}

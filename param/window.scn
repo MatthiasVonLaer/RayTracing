@@ -1,5 +1,5 @@
 camera output_filename    out/scene.jpg
-camera resolution         2250 1500
+camera resolution         1500 2250
 camera crop_factor        1.5
 camera focal_length       50  //mm
 camera aperture           f/2.8
@@ -20,7 +20,7 @@ camera colorization       rgb
 camera vignette           -2
 //camera noise              .2
 
-raytracer recursion_break_ratio  .01
+raytracer recursion_break_ratio  .001
 raytracer recursion_break_depth  10
 
 ray_diagram rays 35  range 15  y0 700

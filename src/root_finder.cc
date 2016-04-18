@@ -23,7 +23,7 @@ using namespace std;
 
 RootFinder::RootFinder() :
   _tolerance(1e-6),
-  _min_step(0.1),
+  _min_step(0.01),
   _newton_steps(20),
   _nested_intervals_steps(30)
 {
