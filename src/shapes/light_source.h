@@ -15,17 +15,18 @@
 
 #pragma once
 
-#include <istream>
-
 #include "ball.h"
 #include "light_beam.h"
 #include "vector.h"
+
+#include <istream>
 
 class LightSource : public Ball
 {
 public:
   LightSource(Composition *parent);
-  virtual void parse(const std::string &command, std::istream &in);
+
+  virtual void parse(const std::string &command, std::istream &in) override;
 
   const LightBeam& beam() const      {return _beam;}
 

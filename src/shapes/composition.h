@@ -15,11 +15,11 @@
 
 #pragma once
 
-#include <fstream>
-#include <string>
-
 #include "shape.h"
 #include "utilities.h"
+
+#include <fstream>
+#include <string>
 
 class Scene;
 
@@ -37,18 +37,19 @@ private:
 
 public:
   Composition(Composition *parent);
-  virtual void parse(const std::string &command, std::istream &in);
-  void setup(Scene *scene, const Composition *parent, const std::string &path);
 
-  double init_dx()          {return _scale;}
-  double init_dy()          {return _scale;}
-  double init_dz()          {return _scale;}
+  virtual void parse(const std::string &command, std::istream &in) override;
+  void setup(Scene *scene, const std::string &path);
+
+  double init_dx() override {return _scale;}
+  double init_dy() override {return _scale;}
+  double init_dz() override {return _scale;}
 
   const Matrix& transformation_matrix() const {return Shape::transformation_matrix();}
 
-  bool intersect(const Ray &ray, Plane &plane) const  {display_error("Composition should be invisible");}
-  bool inside(const Ray &ray) const                   {display_error("Composition should be invisible");}
-  Color get_color(const Vector &Vector) const         {display_error("Composition should be invisible");}
+  bool intersect(const Ray &ray, Plane &plane) const override {display_error("Composition should be invisible");}
+  bool inside(const Ray &ray) const override                  {display_error("Composition should be invisible");}
+  Color get_color(const Vector &Vector) const override        {display_error("Composition should be invisible");}
 
   std::string name() const;
 };

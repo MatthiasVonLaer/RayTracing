@@ -15,16 +15,16 @@
 
 #pragma once
 
-#include <assert.h>
-
-#include <QImage>
-
 #include "color.h"
 #include "filter.h"
 #include "matrix.h"
 #include "plane.h"
 #include "ray.h"
 #include "vector.h"
+
+#include <QImage>
+
+#include <assert.h>
 
 enum ShapeType {SOLID, SURFACE};
 enum ColorType {OPAQUE, TRANSPARENT};
@@ -73,6 +73,7 @@ private:
 
 public:
   Shape(Composition *parent);
+  virtual ~Shape() {}
 
   virtual void parse(const std::string &command, std::istream &in);
 
@@ -116,8 +117,6 @@ protected:
 
   void set_visible(bool is)           {_visible = is;}
   void set_shape_type(ShapeType type) {_shape_type = type;}
-
-  void load_image(const std::string &path, QImage* &im) const;
 
 public:
   const Vector& origin() const            {return _origin;}

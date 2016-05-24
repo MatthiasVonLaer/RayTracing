@@ -14,12 +14,14 @@
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
+
 #include <complex>
+#include <memory>
 #include <string>
 
-const double PI = 3.141592653589793238;
-const std::complex<double> I(0.0, 1.0);
-const double TOL = 1.e-8;
+constexpr double PI = 3.141592653589793238;
+constexpr std::complex<double> I(0.0, 1.0);
+constexpr double TOL = 1.e-8;
 
 bool is_equal(double d1, double d2, double epsilon=TOL);
 bool is_greater(double d1, double d2, double epsilon=TOL);
@@ -33,3 +35,14 @@ void display_warning(const std::string &text);
 void display_error(const std::string &text);
 void parser_error_unknown_command(const std::string &command);
 void parser_assert_command(const std::string &command, const std::string &expected_command);
+
+
+
+#if __cplusplus == 201402L
+using std::make_unique;
+#else
+template<typename T, typename... Args>
+std::unique_ptr<T> make_unique(Args&&... args) {
+      return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
+}
+#endif

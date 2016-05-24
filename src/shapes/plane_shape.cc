@@ -13,15 +13,16 @@
 //  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#include <iostream>
 #include "plane_shape.h"
+
 #include "utilities.h"
+
+#include <iostream>
 
 using namespace std;
 
 PlaneShape::PlaneShape(Composition *parent) :
-  Shape(parent),
-  _image(0) 
+  Shape(parent)
 {
   set_shape_type(SURFACE);
 }
@@ -31,7 +32,11 @@ void PlaneShape::parse(const string &command, istream &in)
   if(command == "image") {
     string path;
     in >> path;
-    load_image(path, _image);
+
+    _image.load(path.c_str());
+    if(_image.isNull()) {
+      display_warning("Couldn't load image " + path);
+    }
   }
   else {
     Shape::parse(command, in);
@@ -39,8 +44,8 @@ void PlaneShape::parse(const string &command, istream &in)
 }
 
 double PlaneShape::init_dx() {
-  if(_image && height_parsed() && !width_parsed()) {
-    return height() * _image->width() / _image->height();
+  if(!_image.isNull() && height_parsed() && !width_parsed()) {
+    return height() * _image.width() / _image.height();
   }
   else {
     return width();
@@ -48,8 +53,8 @@ double PlaneShape::init_dx() {
 }
 
 double PlaneShape::init_dz() {
-  if(_image && !height_parsed() && width_parsed()) {
-    return -width() * _image->height() / _image->width();
+  if(!_image.isNull() && !height_parsed() && width_parsed()) {
+    return -width() * _image.height() / _image.width();
   }
   else {
     return -height();
@@ -78,17 +83,17 @@ Color PlaneShape::get_color(const Vector &intersection_point) const
 {
   if(color_type() == OPAQUE) {
 
-    if(!_image) {
+    if(_image.isNull()) {
       return color();
     }
 
     else {
       Vector v = global_to_local_point(intersection_point);
 
-      int x = (v.x() - floor(v.x())) * (_image->width()-1);
-      int y = (v.z() - floor(v.z())) * (_image->height()-1);
+      int x = (v.x() - floor(v.x())) * (_image.width()-1);
+      int y = (v.z() - floor(v.z())) * (_image.height()-1);
 
-      return _image->pixel(x, y);
+      return _image.pixel(x, y);
     }
   }
 

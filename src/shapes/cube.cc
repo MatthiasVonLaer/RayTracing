@@ -13,10 +13,11 @@
 //  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#include <iostream>
-
 #include "cube.h"
+
 #include "utilities.h"
+
+#include <iostream>
 
 using namespace std;
 
@@ -28,31 +29,38 @@ Cube::Cube(Composition *parent) :
   }
 }
 
-Cube::~Cube()
-{
-  for(int i=0; i<6; i++ ) {
-    delete _image[i];
-  }
-}
-
 void Cube::parse(const string &command, istream &in)
 {
   if(command == "image_all_sides") {
     string path;
     in >> path;
-    load_image(path, _image[0]);
-    load_image(path, _image[1]);
-    load_image(path, _image[2]);
-    load_image(path, _image[3]);
-    load_image(path, _image[4]);
-    load_image(path, _image[5]);
+
+    auto image_all_sides = make_shared<QImage>(path.c_str());
+
+    if(image_all_sides->isNull()) {
+      display_warning("Couldn't load image " + path);
+    }
+    else {
+      _image[0] = image_all_sides;
+      _image[1] = image_all_sides;
+      _image[2] = image_all_sides;
+      _image[3] = image_all_sides;
+      _image[4] = image_all_sides;
+      _image[5] = image_all_sides;
+    }
   }
   else if(command == "image") {
     int n;
     in >> n;
+
     string path;
     in >> path;
-    load_image(path, _image[n]);
+
+    _image[n] = shared_ptr<QImage>(new QImage(path.c_str()));
+
+    if(_image[n]->isNull()) {
+      display_warning("Couldn't load image " + path);
+    }
   }
   else {
     Shape::parse(command, in);
@@ -138,7 +146,7 @@ Color Cube::get_color(const Vector &intersection_point) const
     else if(is_equal(v.z(),-1)) { i = 3; a =-v.x(); b = v.y(); }
     else                        { i = 0; a = v.y(); b = v.z(); }
 
-    if(!_image[i]) {
+    if(!_image[i] || _image[i]->isNull()) {
       return color();
     }
     else {

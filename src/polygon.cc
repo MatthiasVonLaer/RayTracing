@@ -13,12 +13,14 @@
 //  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#include <iostream>
-#include <sstream>
+#include "polygon.h"
+
+#include "utilities.h"
+
 #include <math.h>
 
-#include "polygon.h"
-#include "utilities.h"
+#include <iostream>
+#include <sstream>
 
 using namespace std;
 
@@ -35,10 +37,10 @@ Polygon::Polygon(int number_vertices, int radius) :
   }
 
   _pixelmatrix.resize(_diameter);
-  for(int i=0; i<_pixelmatrix.size(); i++) {
-    _pixelmatrix[i].resize(_diameter);
-    for(int j=0; j<_pixelmatrix[i].size(); j++) {
-      _pixelmatrix[i][j] = false;
+  for(auto& row : _pixelmatrix) {
+    row.resize(_diameter);
+    for(auto&& element : row) {//proxy-iterator
+      element = false;
     }
   }
 
@@ -113,9 +115,9 @@ void Polygon::fill_vector()
 string Polygon::str() const
 {
   stringstream stream;
-  for(int j=0; j<_pixelmatrix.size(); j++) {
-    for(int i=0; i<_pixelmatrix[j].size(); i++) {
-      if(_pixelmatrix[i][j]) {
+  for(const auto& row : _pixelmatrix) {
+    for(const auto&& element : row) {//proxy-iterator
+      if(element) {
         stream << " X";
       }
       else {

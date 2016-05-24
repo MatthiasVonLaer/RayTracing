@@ -13,10 +13,11 @@
 //  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#include <iostream>
-
 #include "cylinder.h"
+
 #include "utilities.h"
+
+#include <iostream>
 
 using namespace std;
 
@@ -24,10 +25,6 @@ Cylinder::Cylinder(Composition *parent) :
   Shape(parent),
   _radius(0)
 {	
-}
-
-Cylinder::~Cylinder()
-{
 }
 
 void Cylinder::parse(const string &command, istream &in)

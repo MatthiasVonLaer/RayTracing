@@ -14,28 +14,20 @@
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
-#include <vector>
-#include <complex>
 
 #include "math_expression.h"
 #include "root_finder.h"
 #include "shape.h"
 
+#include <complex>
+#include <vector>
+
 class FunctionPlot : public Shape
 {
 private:
-  static Vector                wrap_intersection_0;
-  static Vector                wrap_intersection_1;
-  static const MathExpression *wrap_f;
-  static const MathExpression *wrap_f_x;
-  static const MathExpression *wrap_f_y;
-
-  static double wrap_function(double t);
-  static double wrap_function_t(double t);
-
-private:
   enum {PLANE_XMAX=0, PLANE_YMAX=1, PLANE_ZMAX=2, PLANE_ZMIN=3, PLANE_YMIN=4, PLANE_XMIN=5};
 
+private:
   RootFinder _root_finder;
 
   Plane _plane[6];
@@ -50,22 +42,23 @@ private:
 
 public:
   FunctionPlot(Composition *parent);
-  virtual void parse(const std::string &command, std::istream &in);
+
+  virtual void parse(const std::string &command, std::istream &in) override;
 
 private:
-  double init_dx() {return width()  / (_xmax - _xmin);}
-  double init_dy() {return depth()  / (_ymax - _ymin);}
-  double init_dz() {return height() / (_zmax - _zmin);}
-  Vector init_origin();
-  void init_derived_class();
+  double init_dx() override {return width()  / (_xmax - _xmin);}
+  double init_dy() override {return depth()  / (_ymax - _ymin);}
+  double init_dz() override {return height() / (_zmax - _zmin);}
+  Vector init_origin() override;
+  void init_derived_class() override;
 	
 public:
-  bool intersect(const Ray &ray, Plane &plane) const;
+  bool intersect(const Ray &ray, Plane &plane) const override;
 private:
   bool intersect_container_boundary(const Vector &point, Plane &intersection_plane) const;
   bool intersect_function(const MathExpression &f, const MathExpression &fx, const MathExpression &fy,
                           Vector p0, const Vector &p1, Plane &intersection_plane) const;
 public:
-  bool inside(const Ray &ray) const;
-  Color get_color(const Vector &vector) const;
+  bool inside(const Ray &ray) const override;
+  Color get_color(const Vector &vector) const override;
 };

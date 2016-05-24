@@ -13,26 +13,19 @@
 //  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#include <iostream>
-#include <sstream>
-#include <fstream>
-#include <stdlib.h>
-
-#include <QApplication>
-
 #include "controller.h"
 #include "mpi_manager.h"
 #include "slave.h"
 
-using namespace std;
+#include <QApplication>
 
-MPI_Manager mpi;
+using namespace std;
 
 int main(int argc, char *argv[])
 {
-  mpi.init(argc,argv);
+  mpi().init(argc,argv);
 
-  if(mpi.rank() == 0) {
+  if(mpi().rank() == 0) {
 
     QApplication app(argc, argv);
     Controller controller(app);
@@ -61,6 +54,6 @@ int main(int argc, char *argv[])
     slave.loop();
   }
 
-  mpi.finalize();
+  mpi().finalize();
   return 0;
 }

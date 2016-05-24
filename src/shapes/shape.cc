@@ -13,11 +13,12 @@
 //  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#include <iostream>
+#include "shape.h"
 
 #include "composition.h"
-#include "shape.h"
 #include "utilities.h"
+
+#include <iostream>
 
 using namespace std;
 
@@ -164,15 +165,3 @@ Vector Shape::local_to_global_direction(const Vector &v) const
 {
   return _T_local_to_global * v;
 }
-
-void Shape::load_image(const string &path, QImage* &im) const
-{
-  delete im;
-  im = new QImage(path.c_str());
-  if(im->isNull()) {
-    display_warning("Couldn't load image " + path);
-    delete im;
-    im = 0;
-  }
-}
-

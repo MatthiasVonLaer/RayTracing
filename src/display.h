@@ -21,8 +21,8 @@
 class Display
 {
 private:
-  const int _width_text;
-  const int _width_bar;
+  static const int _width_text = 30;
+  static const int _width_bar = 45;
 
   bool _display_progress;
   bool _display_summary;

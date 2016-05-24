@@ -29,7 +29,7 @@ RootFinder::RootFinder() :
 {
 }
 
-bool RootFinder::find(double (*f)(double), double (*df)(double), double lipschitz, double min, double max, double &result) const
+bool RootFinder::find(Function f, Function df, double min, double max, double &result) const
 {
   double t0 = min;
   double t1 = min;
@@ -62,7 +62,7 @@ bool RootFinder::find(double (*f)(double), double (*df)(double), double lipschit
   return false;
 }
 
-bool RootFinder::nested_intervals(double (*f)(double), double t0, double t1, int steps, double &result) const
+bool RootFinder::nested_intervals(Function f, double t0, double t1, int steps, double &result) const
 {
   double f0 = f(t0);
   double sign_start = f0/fabs(f0);
@@ -90,7 +90,7 @@ bool RootFinder::nested_intervals(double (*f)(double), double t0, double t1, int
   return false;
 }
 
-bool RootFinder::newton(double (*f)(double), double (*df)(double), double min, double max, int steps, double &result) const
+bool RootFinder::newton(Function f, Function df, double min, double max, int steps, double &result) const
 {
   double alpha=1;
   double t = min;

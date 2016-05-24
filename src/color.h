@@ -15,10 +15,9 @@
 
 #pragma once
 
-#include <istream>
-#include <string>
-
 #include <QColor>
+
+#include <istream>
 
 class Color
 {

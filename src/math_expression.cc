@@ -13,12 +13,14 @@
 //  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#include <iostream>
-#include <sstream>
+#include "math_expression.h"
+
+#include "utilities.h"
+
 #include <math.h>
 
-#include "math_expression.h"
-#include "utilities.h"
+#include <iostream>
+#include <sstream>
 
 using namespace std;
 
@@ -47,8 +49,8 @@ int MathExpression::precedence(const string &op)
 
 bool MathExpression::is_operator(const string &str)
 {
-  for(int i=0; i<str.size(); i++)
-    if(operator_chars.find(str[i]) == string::npos)
+  for(const auto& c : str)
+    if(operator_chars.find(c) == string::npos)
       return false;
   return true;
 }
@@ -72,8 +74,8 @@ bool MathExpression::is_function(const string &str)
 {
   if(is_variable(str))
     return false;
-  for(int i=0; i<str.size(); i++)
-    if(function_chars.find(str[i]) == string::npos)
+  for(const auto& c : str)
+    if(function_chars.find(c) == string::npos)
       return false;
   return true;
 }
@@ -100,14 +102,10 @@ MathExpression::MathExpression(const vector<string> &rpn)
   set(rpn);
 }
 
-MathExpression::~MathExpression()
-{
-  clear();
-}
-
-void MathExpression::operator=(const MathExpression &f)
+MathExpression& MathExpression::operator=(const MathExpression &f)
 {
   set(f.reverse_polish_notation());
+  return *this;
 }
 
 void MathExpression::set(const std::string &expr)
@@ -133,12 +131,8 @@ void MathExpression::set(const std::vector<std::string> &rpn)
 
 void MathExpression::clear()
 {
-  for(int i=0; i<_scalars.size(); i++) {
-    delete _scalars[i];
-  }
-  for(int i=0; i<_operations.size(); i++) {
-    delete _operations[i];
-  }
+  _scalars.clear();
+  _operations.clear();
 }
 
 void MathExpression::split(string expr, vector<string> &infix) const
@@ -348,8 +342,7 @@ void MathExpression::initialize()
 const double* MathExpression::initialize_recursion(vector<string> &rpn)
 {
   if(!rpn.size()) {
-    display_warning("MathExpression, init: Unexpected end of expression.");
-    return new double;
+    display_error("MathExpression, init: Unexpected end of expression.");
   }
 
   string pattern = rpn.back();
@@ -368,12 +361,12 @@ const double* MathExpression::initialize_recursion(vector<string> &rpn)
     double d;
     stringstream stream(pattern);
     stream >> d;
-    _scalars.push_back(new double(d));
+    _scalars.push_back( make_unique<double>(d) );
 
-    return _scalars.back();
+    return _scalars.back().get();
   }
   else {
-    _operations.push_back( new MathOperation(pattern) );
+    _operations.push_back( make_unique<MathOperation>(pattern) );
 
     int n = _operations.size()-1;
     for(int i=_operations[n]->number_args()-1; i>=0; i--) {

@@ -13,11 +13,9 @@
 //  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#include <iostream>
-#include <sstream>
-#include "stdlib.h"
-
 #include "complex_light_beam.h"
+
+#include <sstream>
 
 using namespace std;
 
@@ -33,7 +31,7 @@ LightBeam abs_beam(const ComplexLightBeam &lb)
   return LightBeam(abs(lb.red()), abs(lb.green()), abs(lb.blue()), lb.depth());
 }
 
-ComplexLightBeam operator*(const LightBeam &lb, complex<double> x)
+const ComplexLightBeam operator*(const LightBeam &lb, complex<double> x)
 {
   return ComplexLightBeam(lb.red()*x, lb.green()*x, lb.blue()*x, lb.depth());
 }

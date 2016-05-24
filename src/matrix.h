@@ -15,9 +15,9 @@
 
 #pragma once
 
-#include <string>
-
 #include "vector.h"
+
+#include <string>
 
 class Matrix
 {
@@ -31,17 +31,17 @@ public:
   Matrix(double d);
   Matrix();
 
-  double det() const;
-  Matrix inv() const;
+  const double det() const;
+  const Matrix inv() const;
 
-  Matrix operator*(const Matrix &m) const;
-  Vector operator*(const Vector &v) const;
-  Matrix operator*(double d) const;
-  Matrix operator/(double d) const;
-  double operator()(int i, int j) const;
+  const Matrix operator*(const Matrix &m) const;
+  const Vector operator*(const Vector &v) const;
+  const Matrix operator*(double d) const;
+  const Matrix operator/(double d) const;
+  const double operator()(int i, int j) const;
 
-  std::string str() const;
+  const std::string str() const;
 
 private:
-  double cofactor(int i, int j) const;
+  const double cofactor(int i, int j) const;
 };

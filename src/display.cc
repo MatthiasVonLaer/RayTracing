@@ -13,17 +13,16 @@
 //  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#include <iostream>
-
 #include "display.h"
+
 #include "mpi_manager.h"
 #include "utilities.h"
+
+#include <iostream>
 
 using namespace std;
 
 Display::Display() :
-  _width_text(30),
-  _width_bar(45),
   _display_progress(true),
   _display_summary(true),
   _summary_time(0),
@@ -101,13 +100,16 @@ void Display::progress(const string &name, double progress)
 
 void Display::summary() const
 {
-  if(!_display_summary)
+  if(!_display_summary) {
+    cout << endl;
     return;
+  }
 
   cout.precision(2);
   cout << std::fixed;
+  cout << "\r";
   cout << "Pictures: " << _summary_pics << "     ";
-  cout << "Nodes: " << mpi.size() << "     ";
+  cout << "Nodes: " << mpi().size() << "     ";
   cout << "Total: " << _summary_mpix << " MPix     ";
   cout << "Time: " << _summary_time << " s     ";
   cout << "Speed: " << _summary_mpix/_summary_time << " MPix/s" << endl;

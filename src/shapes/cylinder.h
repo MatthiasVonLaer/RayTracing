@@ -15,11 +15,11 @@
 
 #pragma once
 
-#include <vector>
-
 #include "plane.h"
 #include "shape.h"
 #include "vector.h"
+
+#include <vector>
 
 class Cylinder : public Shape
 {
@@ -29,20 +29,20 @@ private:
 
 public:
   Cylinder(Composition *parent);
-  ~Cylinder();
-  virtual void parse(const std::string &command, std::istream &in);
+
+  virtual void parse(const std::string &command, std::istream &in) override;
 
 private:
-  double init_dx() {return _radius;}
-  double init_dy() {return _radius;}
-  void init_derived_class();
+  double init_dx() override {return _radius;}
+  double init_dy() override {return _radius;}
+  void init_derived_class() override;
 	
 public:
-  bool intersect(const Ray &ray, Plane &intersection_plane) const;
+  bool intersect(const Ray &ray, Plane &intersection_plane) const override;
 private:
   bool intersect_plane(const Ray &ray, Plane &intersection_plane) const;
   bool intersect_circle(const Ray &ray, Plane &intersection_plane) const;
 public:
-  bool inside(const Ray &ray) const;
-  Color get_color(const Vector &intersection_point) const;
+  bool inside(const Ray &ray) const override;
+  Color get_color(const Vector &intersection_point) const override;
 };

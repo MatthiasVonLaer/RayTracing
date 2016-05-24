@@ -15,17 +15,17 @@
 
 #pragma once
 
-#include <fstream>
-#include <vector>
-
-#include <QImage>
-
 #include "display.h"
 #include "light_beam.h"
 #include "lens.h"
 #include "ray.h"
 #include "scene.h"
 #include "vector.h"
+
+#include <QImage>
+
+#include <fstream>
+#include <vector>
 
 class Camera
 {

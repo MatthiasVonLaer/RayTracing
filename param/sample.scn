@@ -1,5 +1,5 @@
 camera output_filename    out/scene.jpg
-camera resolution         1500 1000
+camera resolution         1000 666
 camera crop_factor        1.5
 camera focal_length       50  //mm
 camera aperture           f/2.8

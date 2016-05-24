@@ -15,29 +15,25 @@
 
 #pragma once
 
-#include <fstream>
-#include <string>
-#include <QImage>
-#include <QPainter>
-
 #include "camera.h"
 #include "matrix.h"
 #include "ray.h"
 #include "scene.h"
 #include "shape.h"
-#include "vector.h"
+
+#include <QImage>
+#include <QPainter>
+
+#include <string>
 
 class RayDiagram
 {
-private:
-  static QColor color_of_shape(const Shape* shape);
-
 private:
   const Scene &_scene;
   const Camera &_camera;
 
   QImage _image;
-  QPainter *_painter;
+  QPainter _painter;
 
   Matrix _transformation_matrix;
 
@@ -51,9 +47,11 @@ private:
 
   bool _enabled;
 
+private:
+  static QColor color_of_shape(const Shape* shape);
+
 public:
   RayDiagram(const Scene &scene, const Camera &camera);
-  ~RayDiagram();
 
   void parse(const std::string &command, std::istream &stream);
   void init();

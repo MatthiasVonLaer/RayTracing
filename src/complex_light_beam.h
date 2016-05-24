@@ -15,12 +15,12 @@
 
 #pragma once
 
-#include <complex>
-#include <string>
-
 #include "color.h"
 #include "light_beam.h"
 #include "vector.h"
+
+#include <complex>
+#include <string>
 
 class ComplexLightBeam
 {
@@ -37,11 +37,13 @@ public:
                    std::complex<double> g,
                    std::complex<double> b, double d=0)        {_r=r; _g=g; _b=b; _depth=d;}
 
-  ComplexLightBeam(const LightBeam &lb)                       {_r=lb.red(); _g=lb.green(); _b=lb.blue(); _depth=lb.depth();}
+  ComplexLightBeam(const LightBeam &lb)                       {_r=lb.red(); _g=lb.green(); _b=lb.blue();
+                                                               _depth=lb.depth();}
 
-  void      operator+= (const ComplexLightBeam &lb)           {_r+=lb.red(); _g+=lb.green(); _b+=lb.blue(); _depth+=lb.depth();}
-  void      operator*= (double d)                             { _r*=d; _g*=d; _b*=d; _depth*=d;}
-  void      operator/= (double d)                             { _r/=d; _g/=d; _b/=d; _depth/=d;}
+  ComplexLightBeam& operator+= (const ComplexLightBeam &lb)   {_r+=lb.red(); _g+=lb.green(); _b+=lb.blue();
+                                                               _depth+=lb.depth(); return *this;}
+  ComplexLightBeam& operator*= (double d)                     { _r*=d; _g*=d; _b*=d; _depth*=d; return *this;}
+  ComplexLightBeam& operator/= (double d)                     { _r/=d; _g/=d; _b/=d; _depth/=d; return *this;}
 
   std::complex<double> red() const                            {return _r;}
   std::complex<double> green() const                          {return _g;}
@@ -53,4 +55,4 @@ public:
 };
 
 LightBeam abs_beam(const ComplexLightBeam &lb);
-ComplexLightBeam operator*(const LightBeam &lb, std::complex<double> x);
+const ComplexLightBeam operator*(const LightBeam &lb, std::complex<double> x);

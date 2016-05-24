@@ -15,28 +15,29 @@
 
 #pragma once
 
-#include <vector>
-
 #include "plane.h"
 #include "shape.h"
 #include "vector.h"
+
+#include <memory>
+#include <vector>
 
 class Cube : public Shape
 {
 private:
   Plane _plane[6];
-  QImage *_image[6];
+  std::shared_ptr<QImage> _image[6];
 
 public:
   Cube(Composition *parent);
-  ~Cube();
-  virtual void parse(const std::string &command, std::istream &in);
+
+  virtual void parse(const std::string &command, std::istream &in) override;
 
 private:
-  void init_derived_class();
+  void init_derived_class() override;
 	
 public:
-  bool intersect(const Ray &ray, Plane &intersection_plane) const;
-  bool inside(const Ray &ray) const;
-  Color get_color(const Vector &intersection_point) const;
+  bool intersect(const Ray &ray, Plane &intersection_plane) const override;
+  bool inside(const Ray &ray) const override;
+  Color get_color(const Vector &intersection_point) const override;
 };

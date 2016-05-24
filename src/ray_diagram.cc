@@ -13,15 +13,13 @@
 //  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#include <sstream>
+#include "ray_diagram.h"
 
 #include "ball.h"
 #include "camera.h"
 #include "cube.h"
 #include "function_plot.h"
-#include "mpi_manager.h"
 #include "plane_shape.h"
-#include "ray_diagram.h"
 #include "utilities.h"
 
 using namespace std;
@@ -54,14 +52,8 @@ RayDiagram::RayDiagram(const Scene &scene, const Camera &camera) :
   _number_rays(20),
   _range(10),
   _enabled(false),
-  _painter(0),
   _output_file("ray_diagram.jpg")
 {
-}
-
-RayDiagram::~RayDiagram()
-{
-  delete _painter;
 }
 
 void RayDiagram::parse(const string &command, istream &stream)
@@ -106,8 +98,7 @@ void RayDiagram::init()
   }
 
   _image = QImage(_width, _height, QImage::Format_RGB32);
-  delete _painter;
-  _painter = new QPainter(&_image);
+  _painter.begin(&_image);
 }
 
 void RayDiagram::track()
@@ -126,8 +117,8 @@ void RayDiagram::track()
   }
   _scene.stop_tracking();
 
-  for(int i=0; i<data.size(); i++) {
-    paint_ray(data[i].ray, data[i].distance, data[i].ratio);
+  for(const auto& element : data) {
+    paint_ray(element.ray, element.distance, element.ratio);
   }
 
   //track shapes
@@ -139,8 +130,8 @@ void RayDiagram::track()
   }
   _scene.stop_tracking();
 
-  for(int i=0; i<data.size(); i++) {
-    paint_shape(data[i].ray, data[i].shape, data[i].distance);
+  for(const auto& element : data) {
+    paint_shape(element.ray, element.shape, element.distance);
   }
 }
 
@@ -151,8 +142,8 @@ void RayDiagram::paint_ray(const Ray &ray, double distance, double ratio)
   origin       += Vector(_width/2, _height, 0);
   intersection += Vector(_width/2, _height, 0);
 
-  _painter->setPen(QPen(QColor(0, 200*ratio+55, 0), 2));
-  _painter->drawLine(origin.x(), origin.y(), intersection.x(), intersection.y());
+  _painter.setPen(QPen(QColor(0, 200*ratio+55, 0), 2));
+  _painter.drawLine(origin.x(), origin.y(), intersection.x(), intersection.y());
 }
 
 void RayDiagram::paint_shape(const Ray &ray, const Shape *shape, double distance)
@@ -162,8 +153,8 @@ void RayDiagram::paint_shape(const Ray &ray, const Shape *shape, double distance
   origin       += Vector(_width/2, _height, 0);
   intersection += Vector(_width/2, _height, 0);
 
-  _painter->setPen(QPen(color_of_shape(shape), 2));
-  _painter->drawPoint(intersection.x(), intersection.y());
+  _painter.setPen(QPen(color_of_shape(shape), 2));
+  _painter.drawPoint(intersection.x(), intersection.y());
 }
 
 void RayDiagram::save() const

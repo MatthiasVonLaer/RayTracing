@@ -13,33 +13,14 @@
 //  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+#include "function_plot.h"
+
+#include "utilities.h"
+
 #include <iostream>
 #include <vector>
 
-#include "function_plot.h"
-#include "utilities.h"
-
 using namespace std;
-
-double FunctionPlot::wrap_function(double t)
-{
-  Vector v = (1-t) * wrap_intersection_0 + t * wrap_intersection_1;
-  return v.z() - (*wrap_f)(v.x(), v.y()); 
-}
-
-double FunctionPlot::wrap_function_t(double t)
-{
-  Vector v = (1-t) * wrap_intersection_0 + t * wrap_intersection_1;
-  Vector v_t = wrap_intersection_1 - wrap_intersection_0;
-  return v_t.z() - (v_t.x() * (*wrap_f_x)(v.x(), v.y()) + v_t.y() * (*wrap_f_y)(v.x(), v.y()));
-}
-
-Vector                FunctionPlot::wrap_intersection_0;
-Vector                FunctionPlot::wrap_intersection_1;
-const MathExpression *FunctionPlot::wrap_f;
-const MathExpression *FunctionPlot::wrap_f_x;
-const MathExpression *FunctionPlot::wrap_f_y;
-
 
 FunctionPlot::FunctionPlot(Composition *parent) :
   Shape(parent),
@@ -221,19 +202,26 @@ bool FunctionPlot::intersect_container_boundary(const Vector &point, Plane &inte
 bool FunctionPlot::intersect_function(const MathExpression &f, const MathExpression &fx, const MathExpression &fy,
                                       Vector p0, const Vector &p1, Plane &intersection_plane) const
 {
-  wrap_f   = &f;
-  wrap_f_x = &fx;
-  wrap_f_y = &fy;
-  wrap_intersection_1 = p1;
-  const double L = 100;
-  const double tol = 1e-6;
+  static const double tol = 1e-6;
 
   while(is_greater( (p1-p0).norm(), 0, tol)) {
 
-    wrap_intersection_0 = p0;
+    auto func = [f=&f, p0=p0, p1=p1](double t)
+    {
+      Vector v = (1-t) * p0 + t * p1;
+      return v.z() - (*f)(v.x(), v.y()); 
+    };
+
+    auto func_t = [fx=&fx, fy=&fy, p0=p0, p1=p1](double t)
+    {
+      Vector v = (1-t) * p0 + t * p1;
+      Vector v_t = p1 - p0;
+      return v_t.z() - (v_t.x() * (*fx)(v.x(), v.y()) + v_t.y() * (*fy)(v.x(), v.y()));
+    };
+
     double distance;
 
-    if(_root_finder.find(&wrap_function, &wrap_function_t, L, tol, 1-tol, distance)) {
+    if(_root_finder.find(func, func_t, tol, 1-tol, distance)) {
 
       Vector p_local = (1-distance) * p0 + distance * p1;
 
@@ -254,6 +242,7 @@ bool FunctionPlot::intersect_function(const MathExpression &f, const MathExpress
 
   return false;
 }
+
 bool FunctionPlot::inside(const Ray &ray) const
 {
   if(shape_type() == SURFACE) {

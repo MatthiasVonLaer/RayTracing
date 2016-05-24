@@ -13,21 +13,16 @@
 //  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#include <fstream>
-#include <unistd.h>
-#include <stdio.h>
-#include <assert.h>
 #include "mpi_manager.h"
+
+#include <unistd.h>
 
 using namespace std;
 
-bool MPI_Manager::singleton_exists = false;
-
-MPI_Manager::MPI_Manager()
-  : tag_data(0), tag_order(1)
+MPI_Manager& MPI_Manager::singleton()
 {
-  assert(!singleton_exists);
-  singleton_exists = true;
+  static MPI_Manager mpi_manager;
+  return mpi_manager;
 }
 
 void MPI_Manager::init(int argc, char** argv)
@@ -45,42 +40,50 @@ void MPI_Manager::finalize()
   MPI_Finalize();
 }
 
-
-void MPI_Manager::recv_order(Order &i,int source)
+void MPI_Manager::iprobe(int idle_time)
 {
-  MPI_Recv(&i,1,MPI_INT,source,tag_order,_comm,&_status);
+  int flag = 0;
+  while(!flag) {
+    MPI_Iprobe(0, MPI_ANY_TAG, _comm, &flag, 0);
+    usleep(idle_time);
+  }
 }
 
-void MPI_Manager::send_order(Order i,int dest)
+void MPI_Manager::recv_order(MPI_Order &i,int source)
 {
-  MPI_Ssend(&i,1,MPI_INT,dest,tag_order,_comm);
+  MPI_Recv(&i,1,MPI_INT,source,ORDER,_comm,&_status);
+}
+
+void MPI_Manager::send_order(MPI_Order i,int dest)
+{
+  MPI_Ssend(&i,1,MPI_INT,dest,ORDER,_comm);
 }
 
 void MPI_Manager::recv_int(int &i,int source)
 {
-  MPI_Recv(&i,1,MPI_INT,source,tag_data,_comm,&_status);
+  MPI_Recv(&i,1,MPI_INT,source,DATA,_comm,&_status);
 }
 
 void MPI_Manager::send_int(int i,int dest)
 {
-  MPI_Ssend(&i,1,MPI_INT,dest,tag_data,_comm);
+  MPI_Ssend(&i,1,MPI_INT,dest,DATA,_comm);
 }
 
 void MPI_Manager::recv_double(double &i,int source)
 {
-  MPI_Recv(&i,1,MPI_DOUBLE,source,tag_data,_comm,&_status);
+  MPI_Recv(&i,1,MPI_DOUBLE,source,DATA,_comm,&_status);
 }
 
 void MPI_Manager::send_double(double i,int dest)
 {
-  MPI_Ssend(&i,1,MPI_DOUBLE,dest,tag_data,_comm);
+  MPI_Ssend(&i,1,MPI_DOUBLE,dest,DATA,_comm);
 }
 
 void MPI_Manager::send_string(const std::string &s,int dest)
 {
   int size = s.size();
   send_int(size,dest);
-  MPI_Ssend((void *) s.c_str(),s.size(),MPI_CHAR,dest,tag_data,_comm);
+  MPI_Ssend((void *) s.c_str(),s.size(),MPI_CHAR,dest,DATA,_comm);
 }
 
 void MPI_Manager::recv_string(std::string &s,int source)
@@ -89,7 +92,7 @@ void MPI_Manager::recv_string(std::string &s,int source)
   recv_int(size,source);
   s.resize(size);
   
-  MPI_Recv((void *) s.c_str(),s.size(),MPI_CHAR,source,tag_data,_comm,&_status);
+  MPI_Recv((void *) s.c_str(),s.size(),MPI_CHAR,source,DATA,_comm,&_status);
 }
 
 void MPI_Manager::recv_vector(      Vector &v, int source)
@@ -125,3 +128,5 @@ void MPI_Manager::send_light_beam(const LightBeam &lb, int dest)
   send_double(lb.blue(), dest);
   send_double(lb.depth(), dest);
 }
+
+MPI_Manager& mpi() {return MPI_Manager::singleton();}

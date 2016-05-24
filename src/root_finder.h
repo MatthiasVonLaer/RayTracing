@@ -15,6 +15,8 @@
 
 #pragma once
 
+#include <functional>
+
 class RootFinder 
 {
 private:
@@ -24,8 +26,10 @@ private:
   const double _tolerance;
 
 public:
+  using Function = std::function<double(double)>;
+
   RootFinder();
-  bool find(double (*f)(double), double (*df)(double), double lipschitz, double min, double max, double &result) const;
-  bool nested_intervals(double (*f)(double), double t0, double t1, int steps, double &result) const;
-  bool newton(double (*f)(double), double (*df)(double), double a, double b, int steps, double &erg) const;
+  bool find(Function f, Function df, double min, double max, double &result) const;
+  bool nested_intervals(Function f, double t0, double t1, int steps, double &result) const;
+  bool newton(Function f, Function df, double a, double b, int steps, double &erg) const;
 };

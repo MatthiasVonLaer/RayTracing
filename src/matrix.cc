@@ -13,13 +13,15 @@
 //  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#include <iostream>
-#include <sstream>
 #include "matrix.h"
+
+#include <sstream>
 
 using namespace std;
 
-Matrix::Matrix(double a00, double a01, double a02, double a10, double a11, double a12, double a20, double a21, double a22)
+Matrix::Matrix(double a00, double a01, double a02,
+               double a10, double a11, double a12,
+               double a20, double a21, double a22)
 {
   _a[0][0] = a00;
   _a[0][1] = a01;
@@ -85,7 +87,7 @@ Matrix::Matrix()
 }
 
 
-double Matrix::det() const
+const double Matrix::det() const
 {
   return   _a[0][0] * (_a[1][1]*_a[2][2] - _a[1][2]*_a[2][1])
          - _a[0][1] * (_a[1][0]*_a[2][2] - _a[1][2]*_a[2][0])
@@ -96,14 +98,20 @@ double Matrix::det() const
 // ( a[1][0]  a[1][1]  a[1][2] )
 // ( a[2][0]  a[2][1]  a[2][2] )
 
-Matrix Matrix::inv() const
+const Matrix Matrix::inv() const
 {
-  return Matrix(_a[1][1]*_a[2][2] - _a[2][1]*_a[1][2], _a[2][1]*_a[0][2] - _a[0][1]*_a[2][2], _a[0][1]*_a[1][2] - _a[1][1]*_a[0][2],
-                _a[2][0]*_a[1][2] - _a[1][0]*_a[2][2], _a[0][0]*_a[2][2] - _a[0][2]*_a[2][0], _a[1][0]*_a[0][2] - _a[0][0]*_a[1][2],
-                _a[1][0]*_a[2][1] - _a[1][1]*_a[2][0], _a[2][0]*_a[0][1] - _a[0][0]*_a[2][1], _a[0][0]*_a[1][1] - _a[1][0]*_a[0][1])/det();
+  return Matrix(_a[1][1]*_a[2][2] - _a[2][1]*_a[1][2],
+                _a[2][1]*_a[0][2] - _a[0][1]*_a[2][2],
+                _a[0][1]*_a[1][2] - _a[1][1]*_a[0][2],
+                _a[2][0]*_a[1][2] - _a[1][0]*_a[2][2],
+                _a[0][0]*_a[2][2] - _a[0][2]*_a[2][0],
+                _a[1][0]*_a[0][2] - _a[0][0]*_a[1][2],
+                _a[1][0]*_a[2][1] - _a[1][1]*_a[2][0],
+                _a[2][0]*_a[0][1] - _a[0][0]*_a[2][1],
+                _a[0][0]*_a[1][1] - _a[1][0]*_a[0][1])/det();
 }
 
-Matrix Matrix::operator*(const Matrix &m) const
+const Matrix Matrix::operator*(const Matrix &m) const
 {
   return Matrix(_a[0][0]*m(0,0) + _a[0][1]*m(1,0) + _a[0][2]*m(2,0),
                 _a[0][0]*m(0,1) + _a[0][1]*m(1,1) + _a[0][2]*m(2,1),
@@ -116,35 +124,39 @@ Matrix Matrix::operator*(const Matrix &m) const
                 _a[2][0]*m(0,2) + _a[2][1]*m(1,2) + _a[2][2]*m(2,2));
 }
 
-Vector Matrix::operator*(const Vector &v) const
+const Vector Matrix::operator*(const Vector &v) const
 {
   return Vector(_a[0][0]*v.x() + _a[0][1]*v.y() + _a[0][2]*v.z(),
                 _a[1][0]*v.x() + _a[1][1]*v.y() + _a[1][2]*v.z(),
                 _a[2][0]*v.x() + _a[2][1]*v.y() + _a[2][2]*v.z());
 }
 
-Matrix Matrix::operator*(double d) const
+const Matrix Matrix::operator*(double d) const
 {
-  return Matrix(_a[0][0]*d, _a[0][1]*d, _a[0][2]*d, _a[1][0]*d, _a[1][1]*d, _a[1][2]*d, _a[2][0]*d, _a[2][1]*d, _a[2][2]*d);
+  return Matrix(_a[0][0]*d, _a[0][1]*d, _a[0][2]*d, 
+                _a[1][0]*d, _a[1][1]*d, _a[1][2]*d,
+                _a[2][0]*d, _a[2][1]*d, _a[2][2]*d);
 }
 
-Matrix Matrix::operator/(double d) const
+const Matrix Matrix::operator/(double d) const
 {
   if(is_equal(d, 0)) {
     display_warning("Matrix divided by zero.");
     return Matrix();
   }
   else {
-    return Matrix(_a[0][0]/d, _a[0][1]/d, _a[0][2]/d, _a[1][0]/d, _a[1][1]/d, _a[1][2]/d, _a[2][0]/d, _a[2][1]/d, _a[2][2]/d);
+    return Matrix(_a[0][0]/d, _a[0][1]/d, _a[0][2]/d,
+                  _a[1][0]/d, _a[1][1]/d, _a[1][2]/d,
+                  _a[2][0]/d, _a[2][1]/d, _a[2][2]/d);
   }
 }
 
-double Matrix::operator()(int i, int j) const
+const double Matrix::operator()(int i, int j) const
 {
   return _a[i][j];
 }
 
-string Matrix::str() const
+const string Matrix::str() const
 {
   stringstream stream;
   stream << endl;
@@ -154,7 +166,7 @@ string Matrix::str() const
   return stream.str();
 }
 
-double Matrix::cofactor(int i, int j) const
+const double Matrix::cofactor(int i, int j) const
 {
   return _a[(i+1)%3][(j+1)%3] * _a[(i+2)%3][(j+2)%3] - _a[(i+2)%3][(j+1)%3] * _a[(i+1)%3][(j+2)%3];
 }

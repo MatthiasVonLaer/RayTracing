@@ -15,11 +15,11 @@
 
 #pragma once
 
-#include <string>
-#include <vector>
-
 #include "math_operation.h"
 #include "vector.h"
+
+#include <string>
+#include <vector>
 
 class MathExpression
 {
@@ -46,17 +46,17 @@ private:
 
   mutable double _x, _y, _z;
   const double *_result;
-  std::vector<MathOperation*> _operations;
-  std::vector<const double*> _scalars;
+  std::vector< std::unique_ptr<MathOperation> > _operations;
+  std::vector< std::unique_ptr<const double> > _scalars;
 
 public:
   MathExpression();
   MathExpression(const std::string &expr);
   MathExpression(const std::vector<std::string> &rpn);
-  ~MathExpression();
+  MathExpression(const MathExpression&); //not implemented
 
 public:
-  void operator=(const MathExpression &f);
+  MathExpression& operator=(const MathExpression &f);
 private:
   void set(const std::string &expr);
   void set(const std::vector<std::string> &rpn);

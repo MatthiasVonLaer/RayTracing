@@ -13,32 +13,29 @@
 //  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#include <iostream>
+#include "lens.h"
+
+#include "utilities.h"
+
 #include <math.h>
 
-#include "lens.h"
-#include "utilities.h"
+#include <memory>
 
 using namespace std;
 
+constexpr double Lens::s_wavelength_light;
+
 Lens::Lens() :
-  _wavelength_light  (800e-9),
-  _integration_nodes_radius(250),
   _focal_length      (.035),
   _aperture          (5.6),
   _blades            (0)
 {
 }
 
-Lens::~Lens()
-{
-  clear_aperture_shapes();
-}
-
 double Lens::blur_diameter(double distance) const
 {
-  double blur_at_distance = fabs(distance - _focus) * (_focal_length) / _aperture / _focus;
-  double blur_on_film = blur_at_distance * (_focal_length) / distance;
+  const double blur_at_distance = fabs(distance - _focus) * (_focal_length) / _aperture / _focus;
+  const double blur_on_film = blur_at_distance * (_focal_length) / distance;
   return blur_on_film;
 }
 
@@ -46,21 +43,13 @@ Polygon& Lens::aperture_shape(int radius)
 {
   if(!_aperture_shapes.count(radius)) {
     if(_blades == 0) {
-      _aperture_shapes[radius] = new Polygon(6*radius, radius);
+      _aperture_shapes[radius] = make_unique<Polygon>(6*radius, radius);
     }
     else {
-      _aperture_shapes[radius] = new Polygon(_blades, radius);
+      _aperture_shapes[radius] = make_unique<Polygon>(_blades, radius);
     }
   }
   return *(_aperture_shapes[radius]);
-}
-
-void Lens::clear_aperture_shapes()
-{
-  for(map<int, Polygon*>::iterator it = _aperture_shapes.begin(); it != _aperture_shapes.end(); it++) {
-    delete it->second;
-  }
-  _aperture_shapes.clear();
 }
 
 complex<double> Lens::diffraction_pattern(double x_0, double y_0)
@@ -73,14 +62,14 @@ complex<double> Lens::diffraction_pattern(double x_0, double y_0)
 
 complex<double> Lens::integrate_diffraction_pattern(double x_0, double y_0)
 {
-  Polygon aperture = aperture_shape(_integration_nodes_radius);
-  double ds = _focal_length / _aperture / (2*_integration_nodes_radius);
+  Polygon aperture = aperture_shape(s_integration_nodes_radius);
+  const double ds = _focal_length / _aperture / (2*s_integration_nodes_radius);
   complex<double> integral = 0;
   for(int n=0; n<aperture.size(); n++) {
     double x = aperture.x(n) * ds; 
     double y = aperture.y(n) * ds;
-    //integral += exp( - 2 * PI * I / _wavelength_light * (- r(x_0, y_0, x, y)) ) / r(x_0, y_0, x, y);
-    integral += exp( - 2 * PI * I / _wavelength_light * (r(0, 0, x, y) - r(x_0, y_0, x, y)) ) * r(0, 0, x, y) / r(x_0, y_0, x, y);
+    integral += exp( - 2 * PI * I / s_wavelength_light
+              * (r(0, 0, x, y) - r(x_0, y_0, x, y)) ) * r(0, 0, x, y) / r(x_0, y_0, x, y);
   }
   integral /= aperture.size();
   return integral;

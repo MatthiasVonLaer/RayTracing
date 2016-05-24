@@ -14,9 +14,11 @@
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "utilities.h"
+
 #include "vector.h"
 
 #include <math.h>
+
 #include <iostream>
 #include <iomanip>
 #include <sstream>
@@ -54,7 +56,7 @@ bool is_smaller_or_equal(double a, double b, double epsilon)
 
 double f_rand(double f_min, double f_max)
 {
-  double f = (double)rand() / RAND_MAX;
+  double f = static_cast<double>(rand()) / RAND_MAX;
   return f_min + f * (f_max - f_min);
 }
 

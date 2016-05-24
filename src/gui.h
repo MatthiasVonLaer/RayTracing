@@ -15,12 +15,12 @@
 
 #pragma once
 
-#include <QTimer>
-#include <QWidget>
-
 #include "camera.h"
 #include "matrix.h"
 #include "scene.h"
+
+#include <QTimer>
+#include <QWidget>
 
 class Gui : public QWidget
 {
@@ -31,7 +31,7 @@ private:
   int _width;
   int _height;
 
-  QTimer *_timer;
+  QTimer _timer;
 
   bool _take_pic;
   double _speed;
@@ -43,7 +43,6 @@ private:
 
 public:
   Gui(const Scene &scene, Camera &camera);
-  ~Gui();
 
 public slots:
   void paintEvent(QPaintEvent *event);

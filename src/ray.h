@@ -14,6 +14,7 @@
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
+
 #include "plane.h"
 #include "vector.h"
 
@@ -27,7 +28,7 @@ public:
   Ray(){}
   Ray(const Vector& v1, const Vector& v2) {p = v1; u = v2.normalized();}
 
-  Ray operator+(const Vector &vector) const {return Ray(p+vector, u);}
+  const Ray operator+(const Vector &vector) const {return Ray(p+vector, u);}
 
   bool intersect(const Plane &plane, double &intersection_distance) const;
 

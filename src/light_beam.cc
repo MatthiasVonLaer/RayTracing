@@ -13,11 +13,12 @@
 //  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+#include "light_beam.h"
+
+#include <stdlib.h>
+
 #include <iostream>
 #include <sstream>
-#include "stdlib.h"
-
-#include "light_beam.h"
 
 using namespace std;
 

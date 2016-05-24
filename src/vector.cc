@@ -17,7 +17,23 @@
 
 using namespace std;
 
-Vector Vector::normalized() const
+const double Vector::operator[](int i) const
+{
+  if      (i==0) {
+    return _x; 
+  }
+  else if (i==1) {
+    return _y;
+  }
+  else if (i==2) {
+    return _z;
+  }
+  else {
+    display_error("Vector::operator[]: out of range");
+  }
+}
+
+const Vector Vector::normalized() const
 {	
   double d = norm();
 
@@ -36,16 +52,12 @@ void Vector::normalize() {
     set(0, 0, 0);
 }
 
-string Vector::str() const {
+const string Vector::str() const {
   std::stringstream stream;
   stream << "Vector(" << _x << ", " << _y << ", " << _z << ")";
   return stream.str();
 }
 
-Vector operator*(double d, const Vector &v)
-{
-  return Vector(v.x()*d, v.y()*d, v.z()*d);
-}
 
 istream& operator>>(istream &in, Vector &v)
 {

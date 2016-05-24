@@ -13,13 +13,13 @@
 //  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#include <iostream>
+#include "gui.h"
 
 #include <QCursor>
 #include <QKeyEvent>
 #include <QPainter>
 
-#include "gui.h"
+#include <iostream>
 
 using namespace std;
 
@@ -28,12 +28,12 @@ Gui::Gui(const Scene &scene, Camera &camera) :
   _scene(scene),
   _width(0),
   _height(0),
-  _timer(0),
   _take_pic(false),
   _res_x(_camera.resolution_x()),
   _res_y(_camera.resolution_y()),
   _top_direction(_camera.top_direction()),
-  _speed(.5)
+  _speed(.5),
+  _timer(this)
 {
   _scene.clear_tracking();
 
@@ -45,11 +45,7 @@ Gui::Gui(const Scene &scene, Camera &camera) :
   pal.setColor(QPalette::Background, Qt::black);
   setPalette(pal);
 
-}
-
-Gui::~Gui()
-{
-  delete _timer;
+  connect(&_timer, SIGNAL(timeout()), this, SLOT(timerEvent()));
 }
 
 void Gui::paintEvent(QPaintEvent *event)
@@ -70,8 +66,10 @@ void Gui::paintEvent(QPaintEvent *event)
     double distance1 = data[i].distance;
     double ratio     = data[i].ratio;
 
-    bool in_front_0 = _camera.viewing_direction() * (ray.origin() + distance0 * ray.direction() - _camera.position()) > 0;
-    bool in_front_1 = _camera.viewing_direction() * (ray.origin() + distance1 * ray.direction() - _camera.position()) > 0;
+    bool in_front_0 = _camera.viewing_direction()
+                    * (ray.origin() + distance0 * ray.direction() - _camera.position()) > 0;
+    bool in_front_1 = _camera.viewing_direction()
+                    * (ray.origin() + distance1 * ray.direction() - _camera.position()) > 0;
 
     double dist_film;
     ray.intersect( Plane(_camera.position(), _camera.viewing_direction()), dist_film );
@@ -89,8 +87,8 @@ void Gui::paintEvent(QPaintEvent *event)
     Vector v1 = _camera.film_coordinates(ray.origin() + distance0 * ray.direction());
     Vector v2 = _camera.film_coordinates(ray.origin() + distance1 * ray.direction());
 
-    v1 *= double(_width) / _camera.film().width();
-    v2 *= double(_width) / _camera.film().width();
+    v1 *= static_cast<double>(_width) / _camera.film().width();
+    v2 *= static_cast<double>(_width) / _camera.film().width();
 
     painter.setPen(QPen(QColor(255*ratio, 0, 0), 2));
     painter.drawLine(v1.x(), v1.y(), v2.x(), v2.y());
@@ -106,12 +104,10 @@ void Gui::keyPressEvent(QKeyEvent *event)
   }
   else if(event->key() == Qt::Key_Space) {
 
-    if(!_timer) {
+    if(!_timer.isActive()) {
       _camera.set_resolution(_res_live_x, _res_live_y);
 
-      _timer = new QTimer(this);
-      connect(_timer, SIGNAL(timeout()), this, SLOT(timerEvent()));
-      _timer->start(50);
+      _timer.start(50);
 
       QCursor::setPos(mapToGlobal(QPoint(width()/2, height()/2)));
       setMouseTracking(true);
@@ -119,8 +115,7 @@ void Gui::keyPressEvent(QKeyEvent *event)
     else {
       _camera.set_resolution(_res_x, _res_y);
 
-      delete _timer;
-      _timer = 0;
+      _timer.stop();
 
       setMouseTracking(false);
     }
@@ -131,12 +126,12 @@ void Gui::keyPressEvent(QKeyEvent *event)
     update();
   }
   else if(event->key() == 's') {
-    if(!_timer) {
+    if(!_timer.isActive()) {
       _camera.save();
     }
   }
 
-  if(_timer) {
+  if(_timer.isActive()) {
     Vector right = _camera.viewing_direction() ^ _camera.top_direction();
     if(event->key() == Qt::Key_Left) {
       _camera.set_position( _camera.position() - _speed * right );
@@ -201,7 +196,7 @@ void Gui::mousePressEvent(QMouseEvent *event)
 void Gui::resizeEvent(QResizeEvent *event)
 {
   const QImage &image = _camera.film();
-  if(double(image.width()) / width() > double(image.height()) / height()) {
+  if(static_cast<double>(image.width()) / width() > static_cast<double>(image.height()) / height()) {
     _width = width();
     _height = width() * image.height() / image.width();
   }
@@ -214,7 +209,7 @@ void Gui::resizeEvent(QResizeEvent *event)
 
 void Gui::mouseMoveEvent(QMouseEvent *event)
 {
-  if(_timer) {
+  if(_timer.isActive()) {
     int x = event->x() - width()/2;   
     int y = event->y() - height()/2;   
 
@@ -232,7 +227,7 @@ void Gui::mouseMoveEvent(QMouseEvent *event)
 
 void Gui::wheelEvent(QWheelEvent *event)
 {
-  if(_timer) {
+  if(_timer.isActive()) {
     if(event->delta() > 0) {
       _camera.set_focal_length( _camera.focal_length() * event->delta()/100. );
       _take_pic = true;

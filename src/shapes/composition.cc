@@ -13,11 +13,12 @@
 //  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#include <iostream>
-
 #include "composition.h"
+
 #include "scene.h"
 #include "utilities.h"
+
+#include <iostream>
 
 using namespace std;
 
@@ -55,10 +56,9 @@ void Composition::parse(const string &command, istream &in)
   }
 }
 
-void Composition::setup(Scene *scene, const Composition *parent, const string &path)
+void Composition::setup(Scene *scene, const string &path)
 {
   _scene = scene;
-  _parent = parent;
   _path = path;
 }
 

@@ -13,23 +13,18 @@
 //  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#include <iostream>
-
 #include "ball.h"
+
 #include "utilities.h"
+
+#include <iostream>
 
 using namespace std;
 
 Ball::Ball(Composition *parent):
   Shape(parent),
-  _radius(1.),
-  _image(0)
+  _radius(1.)
 {
-}
-
-Ball::~Ball()
-{
-  delete _image;
 }
 
 void Ball::parse(const string &command, istream &in)
@@ -40,7 +35,11 @@ void Ball::parse(const string &command, istream &in)
   else if(command == "image") {
     string path;
     in >> path;
-    load_image(path, _image);
+
+    _image.load(path.c_str());
+    if(_image.isNull()) {
+      display_warning("Couldn't load image " + path);
+    }
   }
   else {
     Shape::parse(command, in);
@@ -97,7 +96,7 @@ Color Ball::get_color(const Vector &intersection_point) const
 {
   if(color_type() == OPAQUE) {
 
-    if(!_image) {
+    if(_image.isNull()) {
       return color();
     }
 
@@ -112,8 +111,8 @@ Color Ball::get_color(const Vector &intersection_point) const
 
       double theta = acos( v.z() );
 
-      return _image->pixel(_image->width() * phi/(2*PI),
-                           _image->height() * theta/PI);
+      return _image.pixel(_image.width() * phi/(2*PI),
+                          _image.height() * theta/PI);
     }
   }
 

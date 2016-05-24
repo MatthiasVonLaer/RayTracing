@@ -22,20 +22,20 @@ class PlaneShape : public Shape
 {
 private:
   Plane _plane;
-  QImage *_image;
+  QImage _image;
 
 public:
   PlaneShape(Composition *parent);
 
-  virtual void parse(const std::string &command, std::istream &in);
+  virtual void parse(const std::string &command, std::istream &in) override;
 
 private:
-  double init_dx();
-  double init_dz();
-  void init_derived_class();
+  double init_dx() override;
+  double init_dz() override;
+  void init_derived_class() override;
 
 public:
-  bool intersect(const Ray &ray, Plane &intersection_plane) const;
-  bool inside(const Ray&) const {return false;}
-  Color get_color(const Vector &intersection_point) const;
+  bool intersect(const Ray &ray, Plane &intersection_plane) const override;
+  bool inside(const Ray&) const override {return false;}
+  Color get_color(const Vector &intersection_point) const override;
 };

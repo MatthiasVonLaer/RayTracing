@@ -15,18 +15,19 @@
 
 #pragma once
 
+#include "polygon.h"
+
 #include <complex>
 #include <map>
-
-#include "polygon.h"
+#include <memory>
 
 class Lens
 {
 private:
-  const double _wavelength_light;
-  const int _integration_nodes_radius;
+  static constexpr double s_wavelength_light = 550e-9;
+  static constexpr int s_integration_nodes_radius = 250;
 
-  std::map < int, Polygon* > _aperture_shapes;
+  std::map < int, std::unique_ptr<Polygon> > _aperture_shapes;
   std::map < double, std::map < double, std::complex < double > > > _diffraction_pattern;
 
   double _aperture;
@@ -37,13 +38,10 @@ private:
 
 public:
   Lens();
-  ~Lens();
   double blur_diameter(double distance) const;
 
 public:
   Polygon& aperture_shape(int radius);
-private:
-  void clear_aperture_shapes();
 
 public:
   std::complex<double> diffraction_pattern(double x_0, double y_0);
@@ -59,9 +57,7 @@ public:
   double focal_length() const       {return _focal_length;}
 
   void set_aperture(double d)       {_aperture = d;     clear_diffraction_pattern();}
-  void set_blades(int i)            {_blades = i;       clear_diffraction_pattern();  clear_aperture_shapes();}
+  void set_blades(int i)            {_blades = i;       clear_diffraction_pattern();  _aperture_shapes.clear();}
   void set_focus(double d)          {_focus = d;}
   void set_focal_length(double d)   {_focal_length = d; clear_diffraction_pattern();}
-
-
 };

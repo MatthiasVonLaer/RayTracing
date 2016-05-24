@@ -13,12 +13,14 @@
 //  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#include <iostream>
-
 #include "controller.h"
+
 #include "gui.h"
 #include "mpi_manager.h"
 #include "utilities.h"
+
+#include <QApplication>
+
 
 using namespace std;
 
@@ -77,19 +79,18 @@ void Controller::parse(istream &in)
     else {
       _scene.parse(command + rest_of_line);
 
-      for(int i=1; i<mpi.size(); i++) {
-        mpi.send_order(ORDER_PARSE, i);
-        mpi.send_string(command + rest_of_line, i);
+      for(int i=1; i<mpi().size(); i++) {
+        mpi().send_order(MPI_Order::PARSE, i);
+        mpi().send_string(command + rest_of_line, i);
       }
     }
   }
 
   //quit
-  cout << "\r";
   _display.summary();
 
-  for(int i=1; i<mpi.size(); i++) {
-    mpi.send_order(ORDER_QUIT, i);
+  for(int i=1; i<mpi().size(); i++) {
+    mpi().send_order(MPI_Order::QUIT, i);
   }
 }
 
@@ -102,8 +103,8 @@ void Controller::initialize()
   }
 
   _scene.init();
-  for(int i=1; i<mpi.size(); i++) {
-    mpi.send_order(ORDER_INIT, i);
+  for(int i=1; i<mpi().size(); i++) {
+    mpi().send_order(MPI_Order::INIT, i);
   }
 }
 
