@@ -56,7 +56,7 @@ void Cube::parse(const string &command, istream &in)
     string path;
     in >> path;
 
-    _image[n] = shared_ptr<QImage>(new QImage(path.c_str()));
+    _image[n] = make_shared<QImage>(path.c_str());
 
     if(_image[n]->isNull()) {
       display_warning("Couldn't load image " + path);
