@@ -23,7 +23,8 @@
 
 using namespace std;
 
-constexpr double Lens::s_wavelength_light;
+static constexpr double s_wavelength_light = 550e-9;
+static constexpr int s_integration_nodes_radius = 250;
 
 Lens::Lens() :
   _focal_length      (.035),

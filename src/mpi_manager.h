@@ -33,9 +33,6 @@ enum class MPI_Order {
 
 class MPI_Manager
 {
-private:
-  enum Tag { DATA, ORDER };
-
 public:
   static MPI_Manager& singleton();
 

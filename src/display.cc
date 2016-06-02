@@ -22,6 +22,9 @@
 
 using namespace std;
 
+static constexpr int _width_text = 30;
+static constexpr int _width_bar = 45;
+
 Display::Display() :
   _display_progress(true),
   _display_summary(true),

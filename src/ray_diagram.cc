@@ -24,7 +24,7 @@
 
 using namespace std;
 
-QColor RayDiagram::color_of_shape(const Shape* shape)
+static QColor color_of_shape(const Shape* shape)
 {
   if(dynamic_cast<const Ball*>(shape)) {
     return QColor(255, 0, 0);

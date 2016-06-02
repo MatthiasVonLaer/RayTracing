@@ -24,9 +24,6 @@
 class Lens
 {
 private:
-  static constexpr double s_wavelength_light = 550e-9;
-  static constexpr int s_integration_nodes_radius = 250;
-
   std::map < int, std::unique_ptr<Polygon> > _aperture_shapes;
   std::map < double, std::map < double, std::complex < double > > > _diffraction_pattern;
 

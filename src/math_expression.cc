@@ -24,11 +24,11 @@
 
 using namespace std;
 
-const string MathExpression::operator_chars = "+-*/^()";
-const string MathExpression::number_chars = "0123456789."; 
-const string MathExpression::function_chars = "abcdefghijklmnopqrstuvwxyz";
+static const string operator_chars  = "+-*/^()";
+static const string number_chars    = "0123456789."; 
+static const string function_chars  = "abcdefghijklmnopqrstuvwxyz";
 
-int MathExpression::precedence(const string &op)
+static int precedence(const string &op)
 {
   if(op == "(")
     return 1;
@@ -47,7 +47,7 @@ int MathExpression::precedence(const string &op)
   display_error("MathExpression: " + op + " is not a valid operator.");
 }
 
-bool MathExpression::is_operator(const string &str)
+static bool is_operator(const string &str)
 {
   for(const auto& c : str)
     if(operator_chars.find(c) == string::npos)
@@ -55,7 +55,7 @@ bool MathExpression::is_operator(const string &str)
   return true;
 }
 
-bool MathExpression::is_number(const string &str)
+static bool is_number(const string &str)
 {
   if(str.size() == 1 && str[0] == '-')
     return false;
@@ -70,7 +70,12 @@ bool MathExpression::is_number(const string &str)
   return true;
 }
 
-bool MathExpression::is_function(const string &str)
+static bool is_variable(const string &str)
+{
+  return str == "x" || str == "y" || str == "z";
+}
+
+static bool is_function_name(const string &str)
 {
   if(is_variable(str))
     return false;
@@ -80,10 +85,10 @@ bool MathExpression::is_function(const string &str)
   return true;
 }
 
-bool MathExpression::is_variable(const string &str)
-{
-  return str == "x" || str == "y" || str == "z";
-}
+static bool is_operator(char c)       {return is_operator((     string(1, c)));}
+static bool is_number(char c)         {return is_number((       string(1, c)));}
+static bool is_function_name(char c)  {return is_function_name((string(1, c)));}
+static bool is_variable(char c)       {return is_variable((     string(1, c)));}
 
 
 
@@ -159,7 +164,7 @@ void MathExpression::split(string expr, vector<string> &infix) const
       i = j;
       continue;
     }
-    else if(is_function( expr[i] ) || is_variable( expr[i] )) {
+    else if(is_function_name( expr[i] ) || is_variable( expr[i] )) {
       size_t j = expr.find_first_not_of( function_chars, i);
       infix.push_back( expr.substr(i, j-i) );
       i = j;
@@ -197,7 +202,7 @@ void MathExpression::shunting_yard(const vector<string> &input, vector<string> &
     else if(is_variable(input[i])) {
       output.push_back(input[i]);
     }
-    else if(is_function(input[i])) {
+    else if(is_function_name(input[i])) {
       stack.push_back(input[i]);
     }
 
@@ -214,7 +219,7 @@ void MathExpression::shunting_yard(const vector<string> &input, vector<string> &
           }
           else {
             stack.pop_back();
-            if(j-1 >= 0 && is_function(stack.back())) {
+            if(j-1 >= 0 && is_function_name(stack.back())) {
               output.push_back(stack.back());
               stack.pop_back();
             }

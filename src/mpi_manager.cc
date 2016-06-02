@@ -19,6 +19,8 @@
 
 using namespace std;
 
+enum Tag { DATA, ORDER };
+
 MPI_Manager& MPI_Manager::singleton()
 {
   static MPI_Manager mpi_manager;

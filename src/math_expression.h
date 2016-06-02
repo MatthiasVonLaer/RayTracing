@@ -24,24 +24,6 @@
 class MathExpression
 {
 private:
-  static const std::string operator_chars;
-  static const std::string number_chars; 
-  static const std::string function_chars; 
-
-  static int precedence(const std::string &op);
-
-  static bool is_operator(const std::string &str);
-  static bool is_number(const std::string &str);
-  static bool is_function(const std::string &str);
-  static bool is_variable(const std::string &str);
-
-  static bool is_operator(char c) {return is_operator((std::string(1, c)));}
-  static bool is_number(char c)   {return is_number((  std::string(1, c)));}
-  static bool is_function(char c) {return is_function((std::string(1, c)));}
-  static bool is_variable(char c) {return is_variable((std::string(1, c)));}
-
-
-private:
   std::vector<std::string> _reverse_polish;
 
   mutable double _x, _y, _z;

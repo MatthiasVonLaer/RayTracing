@@ -47,9 +47,6 @@ private:
 
   bool _enabled;
 
-private:
-  static QColor color_of_shape(const Shape* shape);
-
 public:
   RayDiagram(const Scene &scene, const Camera &camera);
 
