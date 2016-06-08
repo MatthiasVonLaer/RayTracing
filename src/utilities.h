@@ -35,14 +35,3 @@ void display_warning(const std::string &text);
 void display_error(const std::string &text);
 void parser_error_unknown_command(const std::string &command);
 void parser_assert_command(const std::string &command, const std::string &expected_command);
-
-
-
-#if __cplusplus == 201402L
-using std::make_unique;
-#else
-template<typename T, typename... Args>
-std::unique_ptr<T> make_unique(Args&&... args) {
-      return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
-}
-#endif

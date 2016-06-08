@@ -40,10 +40,10 @@ utilities.cc
 vector.cc
 )
 
-SET(CMAKE_BUILD_TYPE Debug)
+SET(CMAKE_BUILD_TYPE Release)
 SET(CMAKE_CXX_COMPILER mpic++)
 
-ADD_DEFINITIONS(-std=c++1y)
+ADD_DEFINITIONS(-std=c++14)
 
 SET(CMAKE_AUTOMOC ON)
 FIND_PACKAGE(Qt5Widgets)
