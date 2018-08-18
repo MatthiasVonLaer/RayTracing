@@ -19,5 +19,5 @@ target_link_libraries(raytracing_integration_test
 )
 
 add_test(raytracing_integration_test
-    raytracing_integration_test ${CMAKE_CURRENT_SOURCE_DIR}/tests
+    raytracing_integration_test ${CMAKE_CURRENT_SOURCE_DIR}
 )

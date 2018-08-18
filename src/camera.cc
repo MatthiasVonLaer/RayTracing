@@ -307,7 +307,7 @@ void Camera::develop()
   }
 }
 
-double Camera::calculate_exposure_range(double &range_min, double &range_max)
+void Camera::calculate_exposure_range(double &range_min, double &range_max)
 {
   //create histogram
   map<double, int> histogram;

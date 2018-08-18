@@ -21,14 +21,45 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <iterator>
 
-static void RayTraceTestFiles(const std::filesystem::path& path, QApplication& app)
+static void RayTraceTestScenes(const std::filesystem::path& path, QApplication& app)
 {
-  for (const auto& element : std::filesystem::directory_iterator(path))
+  std::filesystem::remove_all(path / "actual");
+  std::filesystem::create_directory(path / "actual");
+  const auto testScenes = path / "test_scenes";
+  for (const auto& element : std::filesystem::directory_iterator(testScenes))
   {
+    if (element.path().extension() != ".scn")
+    {
+      continue;
+    }
     Controller controller(app);
     std::ifstream in(element.path());
     controller.parse(in);
+  }
+}
+
+static std::vector<char> Load(const std::filesystem::path& path)
+{
+  std::ifstream in(path, std::ios::binary);
+  std::vector<char> result(
+      (std::istreambuf_iterator<char>(in)), (std::istreambuf_iterator<char>()));
+  return result;
+}
+
+static void CompareActualToExpected(const std::filesystem::path& path)
+{
+  const auto actualScenes = path / "actual";
+  for (const auto& element : std::filesystem::directory_iterator(actualScenes))
+  {
+    const auto actual = Load(element);
+    const auto expected = Load(path / "expected" / element.path().filename());
+    if (actual != expected)
+    {
+      throw std::runtime_error("The test scene output of \""
+          + element.path().filename().string() + "\" is not as expected.");
+    }
   }
 }
 
@@ -43,8 +74,8 @@ int main(int argc, char *argv[])
     }
     mpi().init(argc,argv);
     QApplication app(argc, argv);
-    RayTraceTestFiles(argv[1], app);
-    //Todo: CompareActualToExpected(argv[1]); 
+    RayTraceTestScenes(argv[1], app);
+    CompareActualToExpected(argv[1]); 
   }
   catch (const std::exception& e)
   {

@@ -1,4 +1,4 @@
-camera output_filename    out/scene.jpg
+camera output_filename    ../../../test/integration_test/actual/sample.jpg
 camera resolution         1000 666
 camera crop_factor        1.5
 camera focal_length       50  //mm

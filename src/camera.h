@@ -82,7 +82,7 @@ private:
   void shutter();
   void develop();
 
-  double calculate_exposure_range(double &range_min, double &range_max);
+  void calculate_exposure_range(double &range_min, double &range_max);
   void depth_of_field();
   void diffraction();
   void black_white();
