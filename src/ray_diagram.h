@@ -19,7 +19,7 @@
 #include "matrix.h"
 #include "ray.h"
 #include "scene.h"
-#include "shape.h"
+#include "shapes/shape.h"
 
 #include <QImage>
 #include <QPainter>

@@ -53,16 +53,3 @@ set_property(TARGET raytracing PROPERTY CXX_STANDARD 17)
 
 add_executable(raytracing_cli main.cc)
 target_link_libraries(raytracing_cli raytracing)
-
-
-find_package(Boost 1.61.0 COMPONENTS unit_test_framework)
-add_executable(raytracing_unit_tests
-    shapes/ball_test.cc
-    unit_tests.cc
-)
-qt5_use_modules(raytracing_unit_tests Widgets)
-target_link_libraries(raytracing_unit_tests
-  raytracing
-  ${Boost_LIBRARIES}
-)
-add_test(raytracing_unit_tests raytracing_unit_tests)

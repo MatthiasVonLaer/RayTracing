@@ -25,7 +25,8 @@ private:
   double _z;
 
 public:
-  explicit Vector(double x=0, double y=0, double z=0) :_x(x), _y(y), _z(z) {}
+  explicit Vector(double x=0, double y=0) :_x(x), _y(y), _z(0) {}
+  Vector(double x, double y, double z) :_x(x), _y(y), _z(z) {}
   
   void set(double x_in, double y_in, double z_in)  {_x=x_in; _y=y_in; _z=z_in;}
   void set_x(double d)                             {_x=d;}

@@ -16,7 +16,7 @@
 #pragma once
 
 #include "ray.h"
-#include "shape.h"
+#include "shapes/shape.h"
 
 class TrackingData
 {

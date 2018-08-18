@@ -15,10 +15,10 @@
 
 #pragma once
 
-#include "composition.h"
 #include "light_beam.h"
-#include "light_source.h"
-#include "shape.h"
+#include "shapes/composition.h"
+#include "shapes/light_source.h"
+#include "shapes/shape.h"
 #include "tracking_data.h"
 
 #include <istream>
