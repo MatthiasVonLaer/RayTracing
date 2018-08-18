@@ -17,6 +17,8 @@
 
 #include "color.h"
 
+#include <cmath>
+
 class Filter
 {
 private:

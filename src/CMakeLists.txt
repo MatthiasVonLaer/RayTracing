@@ -1,6 +1,8 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.1)
 
 PROJECT(Raytracing)
+
+enable_testing()
 
 INCLUDE_DIRECTORIES(
 .
@@ -17,7 +19,6 @@ filter.cc
 gui.cc
 light_beam.cc
 lens.cc
-main.cc
 math_operation.cc
 math_expression.cc
 matrix.cc
@@ -40,13 +41,28 @@ utilities.cc
 vector.cc
 )
 
-SET(CMAKE_BUILD_TYPE Release)
-SET(CMAKE_CXX_COMPILER mpic++)
+set(CMAKE_BUILD_TYPE Release)
+set(CMAKE_CXX_COMPILER mpic++)
 
-ADD_DEFINITIONS(-std=c++14)
+set(CMAKE_AUTOMOC ON)
+find_package(Qt5Widgets)
 
-SET(CMAKE_AUTOMOC ON)
-FIND_PACKAGE(Qt5Widgets)
+add_library(raytracing ${LOCAL_SRC})
+qt5_use_modules(raytracing Widgets)
+set_property(TARGET raytracing PROPERTY CXX_STANDARD 17)
 
-ADD_EXECUTABLE(raytracing ${LOCAL_SRC})
-QT5_USE_MODULES(raytracing Widgets)
+add_executable(raytracing_cli main.cc)
+target_link_libraries(raytracing_cli raytracing)
+
+
+find_package(Boost 1.61.0 COMPONENTS unit_test_framework)
+add_executable(raytracing_unit_tests
+    shapes/ball_test.cc
+    unit_tests.cc
+)
+qt5_use_modules(raytracing_unit_tests Widgets)
+target_link_libraries(raytracing_unit_tests
+  raytracing
+  ${Boost_LIBRARIES}
+)
+add_test(raytracing_unit_tests raytracing_unit_tests)
