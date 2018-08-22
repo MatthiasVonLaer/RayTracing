@@ -1,3 +1,7 @@
 cmake_minimum_required(VERSION 3.1)
 
-subdirs(unit_test integration_test)
+subdirs (
+    unit_test
+    system_test
+    performance_test
+)

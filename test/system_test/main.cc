@@ -23,19 +23,44 @@
 #include <iostream>
 #include <iterator>
 
+static void RayTraceTestScenes(const std::filesystem::path& path, QApplication& app);
+static void CompareActualToExpected(const std::filesystem::path& path);
+
+int main(int argc, char *argv[])
+{
+  try
+  {
+    if(argc < 2)
+    {   
+      throw std::invalid_argument(
+          "No test files directory passed as input parameter.");
+    }
+    mpi().init(argc,argv);
+    QApplication app(argc, argv);
+    RayTraceTestScenes(argv[1], app);
+    CompareActualToExpected(argv[1]); 
+  }
+  catch (const std::exception& e)
+  {
+    std::cerr << e.what() << std::endl;
+    return EXIT_FAILURE;
+  }
+  return EXIT_SUCCESS;
+}
+
 static void RayTraceTestScenes(const std::filesystem::path& path, QApplication& app)
 {
   std::filesystem::remove_all(path / "actual");
   std::filesystem::create_directory(path / "actual");
   const auto testScenes = path / "test_scenes";
-  for (const auto& element : std::filesystem::directory_iterator(testScenes))
+  for (const auto& testScene : std::filesystem::directory_iterator(testScenes))
   {
-    if (element.path().extension() != ".scn")
+    if (testScene.path().extension() != ".scn")
     {
       continue;
     }
     Controller controller(app);
-    std::ifstream in(element.path());
+    std::ifstream in(testScene.path());
     controller.parse(in);
   }
 }
@@ -63,24 +88,3 @@ static void CompareActualToExpected(const std::filesystem::path& path)
   }
 }
 
-int main(int argc, char *argv[])
-{
-  try
-  {
-    if(argc < 2)
-    {   
-      throw std::invalid_argument(
-          "No test files directory passed as input parameter.");
-    }
-    mpi().init(argc,argv);
-    QApplication app(argc, argv);
-    RayTraceTestScenes(argv[1], app);
-    CompareActualToExpected(argv[1]); 
-  }
-  catch (const std::exception& e)
-  {
-    std::cerr << e.what() << std::endl;
-    return EXIT_FAILURE;
-  }
-  return EXIT_SUCCESS;
-}
