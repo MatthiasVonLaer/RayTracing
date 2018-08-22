@@ -25,6 +25,7 @@
 
 static void RayTraceTestScenes(const std::filesystem::path& path, QApplication& app);
 static void CompareActualToExpected(const std::filesystem::path& path);
+static void CheckAllTested(const std::filesystem::path& path);
 
 int main(int argc, char *argv[])
 {
@@ -39,6 +40,7 @@ int main(int argc, char *argv[])
     QApplication app(argc, argv);
     RayTraceTestScenes(argv[1], app);
     CompareActualToExpected(argv[1]); 
+    CheckAllTested(argv[1]);
   }
   catch (const std::exception& e)
   {
@@ -76,15 +78,28 @@ static std::vector<char> Load(const std::filesystem::path& path)
 static void CompareActualToExpected(const std::filesystem::path& path)
 {
   const auto actualScenes = path / "actual";
-  for (const auto& element : std::filesystem::directory_iterator(actualScenes))
+  for (const auto& actualScene : std::filesystem::directory_iterator(actualScenes))
   {
-    const auto actual = Load(element);
-    const auto expected = Load(path / "expected" / element.path().filename());
+    const auto actual = Load(actualScene);
+    const auto expected = Load(path / "expected" / actualScene.path().filename());
     if (actual != expected)
     {
       throw std::runtime_error("The test scene output of \""
-          + element.path().filename().string() + "\" is not as expected.");
+          + actualScene.path().filename().string() + "\" is not as expected.");
     }
   }
 }
 
+static void CheckAllTested(const std::filesystem::path& path)
+{
+  const auto expectedScenes = path / "expected";
+  for (const auto& expectedScene : std::filesystem::directory_iterator(expectedScenes))
+  {
+    const auto actualScene = path / "actual" / expectedScene.path().filename();
+    if (!std::filesystem::exists(actualScene))
+    {
+      throw std::runtime_error("The expected scene "
+          + expectedScene.path().filename().string() + " was not tested.");
+    }
+  }
+}
