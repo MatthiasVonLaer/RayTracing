@@ -64,7 +64,7 @@ MathOperation::MathOperation(const string &pattern) :
     _func1 = &sqrt;
   }
   else {
-    display_error("MathOperation: Pattern not known: " + pattern);
+    throw std::runtime_error("MathOperation: Pattern not known: " + pattern);
   }
 
   if(_func1) {
@@ -74,7 +74,7 @@ MathOperation::MathOperation(const string &pattern) :
     _args.resize(2);
   }
   else {
-    display_error("MathOperation: No function defined.");
+    throw std::runtime_error("MathOperation: No function defined.");
   }
 }
 
@@ -88,6 +88,6 @@ void MathOperation::calculate()
   }
   else {
     assert(0);
-    display_error("MathOperation: number_args should be 1 or 2.");
+    throw std::runtime_error("MathOperation: number_args should be 1 or 2.");
   }
 }

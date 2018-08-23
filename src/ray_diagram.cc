@@ -86,7 +86,7 @@ void RayDiagram::parse(const string &command, istream &stream)
 void RayDiagram::init()
 {
   if(!_enabled)
-    display_error("RayDiagram disabled.");
+    throw std::runtime_error("RayDiagram disabled.");
 
   double ds = _range / _height;
   _transformation_matrix = Matrix( ds*(_camera.viewing_direction() ^ _camera.top_direction()),
@@ -104,7 +104,7 @@ void RayDiagram::init()
 void RayDiagram::track()
 {
   if(!_enabled)
-    display_error("RayDiagram disabled.");
+    throw std::runtime_error("RayDiagram disabled.");
 
   const vector<TrackingData> &data = _scene.tracking_data();
 
@@ -160,7 +160,7 @@ void RayDiagram::paint_shape(const Ray &ray, const Shape *shape, double distance
 void RayDiagram::save() const
 {
   if(!_enabled)
-    display_error("RayDiagram disabled.");
+    throw std::runtime_error("RayDiagram disabled.");
 
   _image.save(_output_file.c_str(), 0, 100);
 }

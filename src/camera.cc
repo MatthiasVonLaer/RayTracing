@@ -144,13 +144,13 @@ void Camera::initialize()
   _top_direction -= (_viewing_direction * _top_direction) * _viewing_direction;
   _top_direction.normalize();
   if( is_equal(0, _viewing_direction.norm()) )
-    display_error("Viewing_direction = 0.");
+    throw std::runtime_error("Viewing_direction = 0.");
   if( is_equal(0, _top_direction.norm()) )
-    display_error("Top_direction = 0.");
+    throw std::runtime_error("Top_direction = 0.");
 
   //assert min resolution
   if(_resolution_x <= 1 || _resolution_y <= 1)
-    display_error("Resolution has to be >= 2.");
+    throw std::runtime_error("Resolution has to be >= 2.");
   _film = QImage(_resolution_x, _resolution_y, QImage::Format_RGB32);
 
   //resize matrix of light_beams
@@ -185,7 +185,7 @@ void Camera::initialize()
 void Camera::take_picture()
 {
   if(!_initialized) {
-    display_error("Camera not initialized.");
+    throw std::runtime_error("Camera not initialized.");
   }
 
   _display.start_timer();

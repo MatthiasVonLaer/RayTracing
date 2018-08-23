@@ -62,6 +62,21 @@ void Composition::setup(Scene *scene, const string &path)
   _path = path;
 }
 
+std::optional<Plane> Composition::intersect(const Ray &ray) const
+{
+  throw std::logic_error("Composition is invisible");
+}
+
+bool Composition::inside(const Ray &ray) const
+{
+  throw std::logic_error("Composition is invisible");
+}
+
+Color Composition::get_color(const Vector &Vector) const
+{
+  throw std::logic_error("Composition is invisible");
+}
+
 string Composition::name() const
 {
   string str;

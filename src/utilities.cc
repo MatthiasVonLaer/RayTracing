@@ -81,17 +81,16 @@ void display_warning(const std::string &text)
 void display_error(const std::string &text)
 {
   cerr << endl << "\033[0;31m" << text << "\033[0m" << endl;
-  exit(1);
 }
 
 void parser_error_unknown_command(const std::string &command)
 {
-  display_error("Parser Error: Command " + command + " not known.");
+  throw std::runtime_error("Parser Error: Command " + command + " not known.");
 }
 
 void parser_assert_command(const std::string &command, const std::string &expected_command)
 {
   if(command != expected_command) {
-    display_error("Parser Error: Got keyword " + command + " instead of the expected keyword " + expected_command + ".");
+    throw std::runtime_error("Parser Error: Got keyword " + command + " instead of the expected keyword " + expected_command + ".");
   }
 }

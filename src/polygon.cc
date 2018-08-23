@@ -30,10 +30,10 @@ Polygon::Polygon(int number_vertices, int radius) :
   _diameter(2*radius+1)
 {
   if(_radius < 0) {
-    display_error("Polygon: Negativ radius.");
+    throw std::runtime_error("Polygon: Negativ radius.");
   }
   if(_number_vertices < 3) {
-    display_error("Polygon: Min 3 vertices.");
+    throw std::runtime_error("Polygon: Min 3 vertices.");
   }
 
   _pixelmatrix.resize(_diameter);

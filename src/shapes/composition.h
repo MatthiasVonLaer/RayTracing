@@ -47,9 +47,9 @@ public:
 
   const Matrix& transformation_matrix() const {return Shape::transformation_matrix();}
 
-  std::optional<Plane> intersect(const Ray &ray) const override {display_error("Composition should be invisible");}
-  bool inside(const Ray &ray) const override                  {display_error("Composition should be invisible");}
-  Color get_color(const Vector &Vector) const override        {display_error("Composition should be invisible");}
+  std::optional<Plane> intersect(const Ray &ray) const override;
+  bool inside(const Ray &ray) const override;
+  Color get_color(const Vector &Vector) const override;
 
   std::string name() const;
 };

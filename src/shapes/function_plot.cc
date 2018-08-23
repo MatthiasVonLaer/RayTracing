@@ -170,7 +170,7 @@ std::optional<Plane> FunctionPlot::intersect(const Ray &ray) const
   }
   else
   {
-    display_error("FunctionPlot: Unknown shape_type.");
+    throw std::logic_error("FunctionPlot: Unknown shape_type.");
   }  
 }
 
@@ -258,10 +258,12 @@ bool FunctionPlot::intersect_function(const MathExpression &f, const MathExpress
 
 bool FunctionPlot::inside(const Ray &ray) const
 {
-  if(shape_type() == SURFACE) {
+  if(shape_type() == SURFACE)
+  {
     return false;
   }
-  else if(shape_type() == SOLID) {
+  else if(shape_type() == SOLID)
+  {
     Vector p = global_to_local_point(ray.origin() + 0.000001 * ray.direction());
     Vector u = global_to_local_direction(ray.direction());
     if(is_smaller(p.x(), _xmax) && is_greater(p.x(), _xmin) &&
@@ -270,67 +272,13 @@ bool FunctionPlot::inside(const Ray &ray) const
        is_smaller_or_equal(p.z(), _f1(p)) && is_greater_or_equal(p.z(), _f0(p)) )
     {
       return true;
-   /* Vector p = global_to_local_point(ray.origin());
-    Vector u = global_to_local_direction(ray.direction());
-    if(is_smaller(p.x(), _xmax) && is_greater(p.x(), _xmin) &&
-       is_smaller(p.y(), _ymax) && is_greater(p.y(), _ymin) &&
-       is_smaller(p.z(), _zmax) && is_greater(p.z(), _zmin))
-    {
-      if(is_greater(_f0(p), _f1(p))) {
-        if(is_smaller(p.z(), _f0(p)) && is_greater(p.z(), _f1(p))) {
-          return true;
-        }
-        else if(is_equal(p.z(), _f0(p)) && is_greater(0, u * (Vector(1, 0, _f0_x(p)) ^ Vector(0, 1, _f0_y(p))))) {
-          return true;
-        }
-        else if(is_equal(p.z(), _f1(p)) && is_smaller(0, u * (Vector(1, 0, _f1_x(p)) ^ Vector(0, 1, _f1_y(p))))) {
-          return true;
-        }
-      }
-      else if(is_greater(_f1(p), _f0(p))) {
-        if(is_smaller(p.z(), _f1(p)) && is_greater(p.z(), _f0(p))) {
-          return true;
-        }
-        else if(is_equal(p.z(), _f1(p)) && is_greater(0, u * (Vector(1, 0, _f1_x(p)) ^ Vector(0, 1, _f1_y(p))))) {
-          return true;
-        }
-        else if(is_equal(p.z(), _f0(p)) && is_smaller(0, u * (Vector(1, 0, _f0_x(p)) ^ Vector(0, 1, _f0_y(p))))) {
-          return true;
-        }
-      }
-    }
-    else if(is_smaller_or_equal(p.x(), _xmax) && is_greater_or_equal(p.x(), _xmin) &&
-            is_smaller_or_equal(p.y(), _ymax) && is_greater_or_equal(p.y(), _ymin) &&
-            is_smaller_or_equal(p.z(), _zmax) && is_greater_or_equal(p.z(), _zmin))
-    {
-      if((is_smaller_or_equal(p.z(), _f0(p)) && is_greater_or_equal(p.z(), _f1(p)) ) ||
-         (is_smaller_or_equal(p.z(), _f1(p)) && is_greater_or_equal(p.z(), _f0(p)) )) 
-      {
-        if     (is_equal(p.x(), _xmax) && is_smaller(u.x(), 0)) {
-          return true;
-        }
-        else if(is_equal(p.x(), _xmin) && is_greater(u.x(), 0)) {
-          return true;
-        }
-        else if(is_equal(p.y(), _ymax) && is_smaller(u.y(), 0)) {
-          return true;
-        }
-        else if(is_equal(p.y(), _ymin) && is_greater(u.y(), 0)) {
-          return true;
-        }
-        else if(is_equal(p.z(), _zmax) && is_smaller(u.z(), 0)) {
-          return true;
-        }
-        else if(is_equal(p.z(), _zmin) && is_greater(u.z(), 0)) {
-          return true;
-        }
-      }*/
     }
 
     return false;
   }
-  else {
-    display_error("FunctionPlot: Unexpected shape_type.");
+  else
+  {
+    throw std::logic_error("FunctionPlot: Unexpected shape_type.");
   }
 }
 

@@ -44,7 +44,7 @@ static int precedence(const string &op)
     return 3;
   if(op == "^")
     return 4;
-  display_error("MathExpression: " + op + " is not a valid operator.");
+  throw std::logic_error("MathExpression: " + op + " is not a valid operator.");
 }
 
 static bool is_operator(const string &str)
@@ -171,7 +171,7 @@ void MathExpression::split(string expr, vector<string> &infix) const
       continue;
     }
     else {
-      display_error("MathExpression, Parser Error: Sign " + expr.substr(i, 1) + " unknown");
+      throw std::runtime_error("MathExpression, Parser Error: Sign " + expr.substr(i, 1) + " unknown");
     }
   }
 
@@ -227,14 +227,14 @@ void MathExpression::shunting_yard(const vector<string> &input, vector<string> &
           }
         }
         if(j < 0) {
-          display_error("Misplaced paranthese.");
+          throw std::runtime_error("Misplaced paranthese.");
         }
       }
       else { //input[i] = +-*/^
         for(int j=stack.size()-1; j>=0; j--) {
           if(is_operator(stack[j]) && precedence(input[i]) <= precedence(stack[j])) {
             if(input[i] == "^" && stack[j] == "^") {
-              display_error("Ambigous order of two ^");
+              throw std::runtime_error("Ambigous order of two ^");
             }
             output.push_back(stack.back());
             stack.pop_back();
@@ -248,7 +248,7 @@ void MathExpression::shunting_yard(const vector<string> &input, vector<string> &
     }
 
     else {
-      display_error("MathExpression: Unexpected element: " + input[i]);
+      throw std::runtime_error("MathExpression: Unexpected element: " + input[i]);
     }
   }
 
@@ -347,7 +347,7 @@ void MathExpression::initialize()
 const double* MathExpression::initialize_recursion(vector<string> &rpn)
 {
   if(!rpn.size()) {
-    display_error("MathExpression, init: Unexpected end of expression.");
+    throw std::runtime_error("MathExpression, init: Unexpected end of expression.");
   }
 
   string pattern = rpn.back();

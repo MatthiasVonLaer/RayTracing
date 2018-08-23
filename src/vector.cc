@@ -29,7 +29,7 @@ const double Vector::operator[](int i) const
     return _z;
   }
   else {
-    display_error("Vector::operator[]: out of range");
+    throw std::out_of_range("Vector::operator[]: out of range");
   }
 }
 

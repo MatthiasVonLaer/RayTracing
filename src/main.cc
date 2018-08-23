@@ -16,12 +16,13 @@
 #include "controller.h"
 #include "mpi_manager.h"
 #include "slave.h"
+#include "utilities.h"
 
 #include <QApplication>
 
 using namespace std;
 
-int main(int argc, char *argv[])
+int run(int argc, char** argv)
 {
   mpi().init(argc,argv);
 
@@ -41,11 +42,11 @@ int main(int argc, char *argv[])
         controller.parse(input);
       }
       else {
-        display_error("Can't open file " + string(argv[1]));
+        throw std::runtime_error("Can't open file " + string(argv[1]));
       }
     }
     else {
-      display_error("Usage: Too many arguments.");
+      throw std::invalid_argument("Usage: Too many arguments.");
     }
 
   }
@@ -56,4 +57,16 @@ int main(int argc, char *argv[])
 
   mpi().finalize();
   return 0;
+}
+
+int main(int argc, char** argv)
+{
+  try
+  {
+    return run(argc, argv);
+  }
+  catch (const std::exception& e)
+  {
+    display_error(e.what());
+  }
 }

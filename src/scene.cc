@@ -415,7 +415,7 @@ void Scene::clear_tracking() const
 void Scene::start_tracking() const
 {
   if(_tracking_active) {
-    display_error("Scene: Tracking already running.");
+    throw std::runtime_error("Scene: Tracking already running.");
   }
   _tracking_active = true;
 }
@@ -423,7 +423,7 @@ void Scene::start_tracking() const
 void Scene::stop_tracking() const
 {
   if(!_tracking_active) {
-    display_error("Scene: Tracking not running.");
+    throw std::runtime_error("Scene: Tracking not running.");
   }
   _tracking_active = false;
 }
