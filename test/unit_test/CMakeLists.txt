@@ -7,6 +7,7 @@ find_package(Boost 1.61.0 COMPONENTS unit_test_framework)
 include_directories(../../src)
 
 add_executable(raytracing_unit_test
+    ../../src/plane_test.cc
     ../../src/shapes/ball_test.cc
     main.cc
 )

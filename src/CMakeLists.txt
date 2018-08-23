@@ -29,6 +29,7 @@ add_library(raytracing
   math_expression.cc
   matrix.cc
   mpi_manager.cc
+  plane.cc
   polygon.cc
   ray.cc
   ray_diagram.cc

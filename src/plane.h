@@ -20,8 +20,8 @@
 class Plane
 {
 public:
-  Plane() = default;
-  Plane(const Vector &p, const Vector &n) {_p = p; _n = n.normalized();}
+  explicit Plane() = default;
+  Plane(const Vector& origin, const Vector& normal);
 
   Vector origin() const {return _p;}
   Vector normal() const {return _n;}
@@ -30,3 +30,7 @@ private:
   Vector _p;
   Vector _n;
 };
+
+double distance(const Plane& lhs, const Vector& rhs);
+bool operator==(const Plane& lhs, const Plane& rhs);
+std::ostream& operator<<(std::ostream& out, const Plane& plane);
