@@ -29,32 +29,37 @@ Ball::Ball(Composition *parent):
 
 void Ball::parse(const string &command, istream &in)
 {
-  if(command == "radius") {
+  if(command == "radius")
+  {
     in >> _radius;
   }
-  else if(command == "image") {
+  else if(command == "image")
+  {
     string path;
     in >> path;
 
     _image.load(path.c_str());
-    if(_image.isNull()) {
+    if(_image.isNull())
+    {
       display_warning("Couldn't load image " + path);
     }
   }
-  else {
+  else
+  {
     Shape::parse(command, in);
   }
 }
 
-bool Ball::intersect(const Ray &ray, Plane &plane) const
+std::optional<Plane> Ball::intersect(const Ray &ray) const
 {
   // Solve:  (ray.origin + t * ray.direction - _origin)^2 = _radius^2
   // =>       t^2 + b*t + c = 0  with:
   double b = 2 * (ray.direction() * (ray.origin() - origin()));
   double c = (ray.origin() - origin()).norm2() - _radius*_radius;
 
-  if(b*b-4*c < 0) {
-    return false;
+  if(b*b-4*c < 0)
+  {
+    return std::nullopt;
   }
   else
   {
@@ -65,18 +70,17 @@ bool Ball::intersect(const Ray &ray, Plane &plane) const
     {
       Vector p = ray.origin() + ray.direction() * x1;
       Vector n = p - origin();
-      plane = Plane(p, n);
-      return true;
+      return Plane(p, n);
     }
     else if( is_greater(x2, 0) )
     {
       Vector p = ray.origin() + ray.direction() * x2;
       Vector n = p - origin();
-      plane = Plane(p, n);
-      return true;
+      return Plane(p, n);
     }
-    else {
-      return false;
+    else
+    {
+      return std::nullopt;
     }
   }
 }
@@ -84,9 +88,9 @@ bool Ball::intersect(const Ray &ray, Plane &plane) const
 bool Ball::inside(const Ray &ray) const
 {
   Vector v = ray.origin() - origin();
-  if(   is_greater(1, v.norm()/_radius))
+  if (is_greater(1, v.norm()/_radius))
     return true;
-  else if(is_equal(1, v.norm()/_radius) && is_greater(0, v * ray.direction()))
+  else if (is_equal(1, v.norm()/_radius) && is_greater(0, v * ray.direction()))
     return true;
   else
     return false;
@@ -94,13 +98,14 @@ bool Ball::inside(const Ray &ray) const
 
 Color Ball::get_color(const Vector &intersection_point) const
 {
-  if(color_type() == OPAQUE) {
-
-    if(_image.isNull()) {
+  if(color_type() == OPAQUE)
+  {
+    if(_image.isNull())
+    {
       return color();
     }
-
-    else {
+    else
+    {
       Vector v = global_to_local_point(intersection_point);
 
       double phi;
@@ -115,8 +120,8 @@ Color Ball::get_color(const Vector &intersection_point) const
                           _image.height() * theta/PI);
     }
   }
-
-  else {
+  else
+  {
     display_error("Unexpected Colortype.");
     return Color(255, 255, 255);
   }

@@ -38,7 +38,7 @@ private:
   void init_derived_class() override;
 	
 public:
-  bool intersect(const Ray &ray, Plane &intersection_plane) const override;
+  std::optional<Plane> intersect(const Ray &ray) const override;
 private:
   bool intersect_plane(const Ray &ray, Plane &intersection_plane) const;
   bool intersect_circle(const Ray &ray, Plane &intersection_plane) const;

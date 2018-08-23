@@ -53,7 +53,7 @@ private:
   void init_derived_class() override;
 	
 public:
-  bool intersect(const Ray &ray, Plane &plane) const override;
+  std::optional<Plane> intersect(const Ray &ray) const override;
 private:
   bool intersect_container_boundary(const Vector &point, Plane &intersection_plane) const;
   bool intersect_function(const MathExpression &f, const MathExpression &fx, const MathExpression &fy,

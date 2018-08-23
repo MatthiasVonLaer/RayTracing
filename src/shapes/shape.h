@@ -26,6 +26,8 @@
 
 #include <assert.h>
 
+#include <optional>
+
 enum ShapeType {SOLID, SURFACE};
 enum ColorType {OPAQUE, TRANSPARENT};
 
@@ -88,7 +90,7 @@ private:
   virtual void init_derived_class() {}
 
 public:
-  virtual bool intersect(const Ray &ray, Plane &plane)  const =0;
+  virtual std::optional<Plane> intersect(const Ray &ray) const =0;
   virtual bool inside(const Ray &ray)                   const =0; 
   virtual Color get_color(const Vector &Vector)         const =0;
 

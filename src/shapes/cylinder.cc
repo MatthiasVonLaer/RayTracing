@@ -43,32 +43,35 @@ void Cylinder::init_derived_class()
   _plane[1] = Plane( origin() - vz(), -vz());
 }
 
-bool Cylinder::intersect(const Ray &ray, Plane &intersection_plane) const
+std::optional<Plane> Cylinder::intersect(const Ray &ray) const
 {
   Plane circle_intersection;
   Plane plane_intersection;
   bool is_circle = intersect_circle(ray, circle_intersection);
   bool is_plane = intersect_plane(ray, plane_intersection);
 
-  if(is_circle && is_plane) {
-    if((ray.origin() - circle_intersection.origin()).norm() < (ray.origin() - plane_intersection.origin()).norm()) {
-      intersection_plane = circle_intersection;
+  if(is_circle && is_plane)
+  {
+    if((ray.origin() - circle_intersection.origin()).norm() < (ray.origin() - plane_intersection.origin()).norm())
+    {
+      return circle_intersection;
     }
-    else {
-      intersection_plane = plane_intersection;
+    else
+    {
+      return plane_intersection;
     }
-    return true;
   }
-  else if(is_circle) {
-    intersection_plane = circle_intersection;
-    return true;
+  else if(is_circle)
+  {
+    return circle_intersection;
   }
-  else if(is_plane) {
-    intersection_plane = plane_intersection;
-    return true;
+  else if(is_plane)
+  {
+    return plane_intersection;
   }
-  else {
-    return false;
+  else
+  {
+    return std::nullopt;
   }
 }
 

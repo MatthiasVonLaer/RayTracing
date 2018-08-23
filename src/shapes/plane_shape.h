@@ -35,7 +35,7 @@ private:
   void init_derived_class() override;
 
 public:
-  bool intersect(const Ray &ray, Plane &intersection_plane) const override;
+  std::optional<Plane> intersect(const Ray &ray) const override;
   bool inside(const Ray&) const override {return false;}
   Color get_color(const Vector &intersection_point) const override;
 };

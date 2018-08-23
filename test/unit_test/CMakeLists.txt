@@ -15,4 +15,6 @@ target_link_libraries(raytracing_unit_test
   raytracing
   ${Boost_LIBRARIES}
 )
+set_property(TARGET raytracing_unit_test PROPERTY CXX_STANDARD 17)
+
 add_test(raytracing_unit_test raytracing_unit_test)

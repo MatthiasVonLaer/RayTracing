@@ -88,7 +88,7 @@ void FunctionPlot::init_derived_class()
   _plane[PLANE_XMIN] = Plane( origin() + _xmin * vx(), -vx());
 }
 
-bool FunctionPlot::intersect(const Ray &ray, Plane &intersection_plane) const
+std::optional<Plane> FunctionPlot::intersect(const Ray &ray) const
 {
   double dist[2];
   int intersections_found = 0;
@@ -96,7 +96,8 @@ bool FunctionPlot::intersect(const Ray &ray, Plane &intersection_plane) const
   for(int i=0; i<6; i++)
   {
     double intersection_distance;
-    if(ray.intersect(_plane[i], intersection_distance)) {
+    if(ray.intersect(_plane[i], intersection_distance))
+    {
       Vector point = global_to_local_point(ray.origin() + intersection_distance * ray.direction());
 	
       if(is_greater_or_equal(_xmax, point.x()) && is_greater_or_equal(_ymax, point.y()) && is_greater_or_equal(_zmax, point.z()) &&
@@ -104,7 +105,8 @@ bool FunctionPlot::intersect(const Ray &ray, Plane &intersection_plane) const
       {
         dist[intersections_found] = intersection_distance;
         intersections_found++;
-        if(intersections_found == 2) {
+        if(intersections_found == 2)
+        {
           break;
         }
       }
@@ -112,14 +114,17 @@ bool FunctionPlot::intersect(const Ray &ray, Plane &intersection_plane) const
     }
   }
 
-  if(intersections_found == 0) {
-    return false;
+  if(intersections_found == 0) 
+  {
+    return std::nullopt;
   }
-  else if(intersections_found == 1) {
+  else if(intersections_found == 1)
+  {
     dist[1] = 0;
   }
 
-  if(dist[0] > dist[1]) {
+  if(dist[0] > dist[1])
+  {
     double dist0 = dist[0];
     dist[0] = dist[1];
     dist[1] = dist0;
@@ -128,35 +133,43 @@ bool FunctionPlot::intersect(const Ray &ray, Plane &intersection_plane) const
   Vector point0 = global_to_local_point( ray.origin() + ray.direction() * dist[0] );
   Vector point1 = global_to_local_point( ray.origin() + ray.direction() * dist[1]  );
   
-  if(shape_type() == SURFACE) {
+  Plane intersection_plane;
+  if(shape_type() == SURFACE) 
+  {
     intersect_function(_f0, _f0_x, _f0_y, point0, point1, intersection_plane);
+    return intersection_plane;
   }
-  else if(shape_type() == SOLID) {
-    if(intersections_found == 2 && intersect_container_boundary(point0, intersection_plane)) {
-      return true;
+  else if(shape_type() == SOLID)
+  {
+    if(intersections_found == 2 && intersect_container_boundary(point0, intersection_plane))
+    {
+      return intersection_plane;
     }
-    else {
+    else 
+    {
       Plane plane0, plane1;
       bool is_intersection_0 = intersect_function(_f0, _f0_x, _f0_y, point0, point1, plane0);
       bool is_intersection_1 = intersect_function(_f1, _f1_x, _f1_y, point0, point1, plane1);
       double result0 = (plane0.origin() - ray.origin()).norm();
       double result1 = (plane1.origin() - ray.origin()).norm();
 
-      if(is_intersection_0 && (!is_intersection_1 || result0 < result1)) {
-        intersection_plane = plane0;
-        return true;
+      if(is_intersection_0 && (!is_intersection_1 || result0 < result1))
+      {
+        return plane0;
       }
-      else if(is_intersection_1) {
-        intersection_plane = plane1;
-        return true;
+      else if(is_intersection_1)
+      {
+        return plane1;
       }
-      else if(intersect_container_boundary(point1, intersection_plane)) {
-        return true;
+      else if(intersect_container_boundary(point1, intersection_plane))
+      {
+        return intersection_plane;
       }
     }
-    return false;
+    return std::nullopt;
   }
-  else {
+  else
+  {
     display_error("FunctionPlot: Unknown shape_type.");
   }  
 }

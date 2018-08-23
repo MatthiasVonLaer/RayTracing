@@ -77,7 +77,7 @@ void Cube::init_derived_class()
   _plane[5] = Plane( origin() - vx(), -vx());
 }
 
-bool Cube::intersect(const Ray &ray, Plane &intersection_plane) const
+std::optional<Plane> Cube::intersect(const Ray &ray) const
 {
   int found_plane = -1;
   double dist_min;
@@ -86,8 +86,8 @@ bool Cube::intersect(const Ray &ray, Plane &intersection_plane) const
   {
     double intersection_distance;
     if(ray.intersect(_plane[i], intersection_distance) &&
-       (found_plane == -1 || is_greater(dist_min, intersection_distance))) {
-
+       (found_plane == -1 || is_greater(dist_min, intersection_distance)))
+    {
       Vector point = global_to_local_point(ray.origin() + intersection_distance * ray.direction());
 	
       if(is_greater_or_equal(1, fabs(point.x())) && is_greater_or_equal(1, fabs(point.y())) && is_greater_or_equal(1, fabs(point.z())) )
@@ -98,13 +98,14 @@ bool Cube::intersect(const Ray &ray, Plane &intersection_plane) const
     }
   }
 
-  if(found_plane != -1) {
-    intersection_plane = Plane(ray.origin() + dist_min * ray.direction(),
-                               _plane[found_plane].normal());
-    return true;
+  if(found_plane != -1)
+  {
+    return Plane(ray.origin() + dist_min * ray.direction(),
+        _plane[found_plane].normal());
   }
-  else {
-    return false;
+  else
+  {
+    return std::nullopt;
   }
 }
 

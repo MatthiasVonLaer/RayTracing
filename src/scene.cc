@@ -377,14 +377,17 @@ const Shape* Scene::get_intersection_shape(const Ray &ray, const Shape* inside_s
   const Shape *intersection_shape = nullptr;
   double distance;
 
-  for(int i=_shapes.size()-1; i>=0; i--) {
-    Plane plane_i;
-    if(_shapes[i]->intersect(ray, plane_i)) {
-      double distance_i = (plane_i.origin() - ray.origin()).norm();
+  for(int i=_shapes.size()-1; i>=0; i--)
+  {
+    const auto plane_i = _shapes[i]->intersect(ray);
+    if(plane_i.has_value())
+    {
+      double distance_i = (plane_i->origin() - ray.origin()).norm();
       if(is_greater(distance_i, 0) &&
-          (!intersection_shape || is_greater(distance, distance_i))) {
+          (!intersection_shape || is_greater(distance, distance_i)))
+      {
         distance = distance_i;
-        intersection_plane = plane_i;
+        intersection_plane = *plane_i;
         intersection_shape = _shapes[i].get();
       }
     }

@@ -28,7 +28,7 @@ private:
   QImage _image;
 
 public:
-  Ball(Composition *parent);
+  Ball(Composition *parent = nullptr);
 
   virtual void parse(const std::string &command, std::istream &in) override;
 
@@ -38,7 +38,7 @@ private:
   double init_dz() override {return _radius;}
 
 public:
-  bool intersect(const Ray &ray, Plane &plane) const override;
+  std::optional<Plane> intersect(const Ray &ray) const override;
   bool inside(const Ray &ray) const override;
   Color get_color(const Vector &intersection_point) const override;
 

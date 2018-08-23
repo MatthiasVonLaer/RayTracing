@@ -13,6 +13,7 @@ target_link_libraries(raytracing_system_test
   raytracing
   stdc++fs
 )
+set_property(TARGET raytracing_system_test PROPERTY CXX_STANDARD 17)
 
 add_test(raytracing_system_test
     raytracing_system_test ${CMAKE_CURRENT_SOURCE_DIR}

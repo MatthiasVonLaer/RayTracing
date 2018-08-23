@@ -66,16 +66,17 @@ void PlaneShape::init_derived_class()
   _plane = Plane(origin(), vy());
 }
 
-bool PlaneShape::intersect(const Ray &ray, Plane &intersection_plane) const
+std::optional<Plane> PlaneShape::intersect(const Ray &ray) const
 {
   double distance;
 
-  if(ray.intersect(_plane, distance)) {
-    intersection_plane = Plane(ray.origin() + distance * ray.direction(), vy());
-    return true;
+  if(ray.intersect(_plane, distance))
+  {
+    return Plane(ray.origin() + distance * ray.direction(), vy());
   }
-  else {
-    return false;
+  else
+  {
+    return std::nullopt;
   }
 }
 
