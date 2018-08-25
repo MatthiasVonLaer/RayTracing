@@ -14,11 +14,10 @@
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "controller.h"
+#include "master.h"
 #include "mpi_manager.h"
 #include "slave.h"
 #include "utilities.h"
-
-#include <QApplication>
 
 using namespace std;
 
@@ -26,10 +25,10 @@ int run(int argc, char** argv)
 {
   mpi().init(argc,argv);
 
-  if(mpi().rank() == 0) {
-
-    QApplication app(argc, argv);
-    Controller controller(app);
+  if(mpi().rank() == 0)
+  {
+    Master master;
+    Controller controller;
 
     //Piped
     if(argc == 1) {
@@ -55,8 +54,7 @@ int run(int argc, char** argv)
     slave.loop();
   }
 
-  mpi().finalize();
-  return 0;
+  return EXIT_SUCCESS;
 }
 
 int main(int argc, char** argv)
@@ -68,5 +66,6 @@ int main(int argc, char** argv)
   catch (const std::exception& e)
   {
     display_error(e.what());
+    return EXIT_SUCCESS;
   }
 }

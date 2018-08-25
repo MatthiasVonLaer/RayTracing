@@ -66,8 +66,4 @@ plane wall  position 10 50 0  front_direction 0 -1 0  top_direction 0 0 1
 plane wall  width 10
 
 take_picture
-launch_gui
 quit
-
-
-

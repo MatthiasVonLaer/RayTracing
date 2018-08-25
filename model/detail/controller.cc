@@ -15,7 +15,6 @@
 
 #include "controller.h"
 
-#include "gui.h"
 #include "mpi_manager.h"
 #include "utilities.h"
 
@@ -23,15 +22,6 @@
 
 
 using namespace std;
-
-Controller::Controller(QApplication &app) :
-  _app(app),
-  _scene(),
-  _display(),
-  _camera(_scene, _display),
-  _ray_diagram(_scene, _camera)
-{
-}
 
 void Controller::parse(istream &in)
 {
@@ -48,9 +38,6 @@ void Controller::parse(istream &in)
 
     if(command.size() == 0) {
       continue;
-    }
-    else if(command == "launch_gui") {
-      launch_gui();
     }
     else if(command == "take_picture") {
       take_picture();
@@ -88,10 +75,6 @@ void Controller::parse(istream &in)
 
   //quit
   _display.summary();
-
-  for(int i=1; i<mpi().size(); i++) {
-    mpi().send_order(MPI_Order::QUIT, i);
-  }
 }
 
 void Controller::initialize()
@@ -121,13 +104,4 @@ void Controller::take_picture()
 
   _display.progress("Done", 1);
   cout << endl;
-}
-
-void Controller::launch_gui()
-{
-  _display.progress("Gui", 0);
-
-  Gui gui(_scene, _camera);
-  gui.showMaximized();
-  _app.exec();
 }

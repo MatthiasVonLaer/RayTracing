@@ -15,9 +15,9 @@
 
 #pragma once
 
-#include "camera.h"
-#include "matrix.h"
-#include "scene.h"
+#include <model/detail/camera.h>
+#include <model/detail/matrix.h>
+#include <model/detail/scene.h>
 
 #include <QTimer>
 #include <QWidget>

@@ -14,9 +14,6 @@
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "controller.h"
-#include "mpi_manager.h"
-
-#include <QApplication>
 
 #include <ctime>
 #include <filesystem>
@@ -25,7 +22,7 @@
 #include <iostream>
 #include <iterator>
 
-static void RunPerformanceTests(const std::filesystem::path& path, QApplication& app);
+static void RunPerformanceTests(const std::filesystem::path& path);
 static bool CheckPerformanceTests(const std::filesystem::path& testSceneLog);
 
 int main(int argc, char *argv[])
@@ -37,9 +34,7 @@ int main(int argc, char *argv[])
       throw std::invalid_argument(
           "No test files directory passed as input parameter.");
     }
-    mpi().init(argc,argv);
-    QApplication app(argc, argv);
-    RunPerformanceTests(argv[1], app);
+    RunPerformanceTests(argv[1]);
     const auto success = CheckPerformanceTests(argv[1]);
     return success ? EXIT_SUCCESS : EXIT_FAILURE;
   }
@@ -50,9 +45,9 @@ int main(int argc, char *argv[])
   }
 }
 
-static void RayTrace(const std::filesystem::path& path, QApplication& app)
+static void RayTrace(const std::filesystem::path& path)
 {
-  Controller controller(app);
+  Controller controller;
   std::ifstream in(path);
   controller.parse(in);
 }
@@ -67,7 +62,7 @@ static void LogElapsedTime(const std::filesystem::path& path,
   out << elapsedTime / std::chrono::seconds(1) << std::endl;
 }
 
-static void RunPerformanceTests(const std::filesystem::path& path, QApplication& app)
+static void RunPerformanceTests(const std::filesystem::path& path)
 {
   const auto timerLogs = path / "timer_log";
   std::filesystem::create_directory(timerLogs);
@@ -79,7 +74,7 @@ static void RunPerformanceTests(const std::filesystem::path& path, QApplication&
       continue;
     }
     const auto start = std::chrono::steady_clock::now();
-    RayTrace(testScene.path(), app);
+    RayTrace(testScene.path());
     const auto end = std::chrono::steady_clock::now();
 
     const auto testSceneLog

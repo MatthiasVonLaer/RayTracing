@@ -21,22 +21,20 @@
 
 #include <istream>
 
-class QApplication;
-
 class Controller
 {
 public:
-  Controller(QApplication &app);
   void parse(std::istream &in);
+  Camera& camera() { return _camera; }
+  Scene& scene() { return _scene; }
+
 private:
   void initialize();
   void take_picture();
   void launch_gui();
 
-private:
-  Camera _camera;
   Scene _scene;
   Display _display;
-  RayDiagram _ray_diagram;
-  QApplication &_app;
+  Camera _camera{_scene, _display};
+  RayDiagram _ray_diagram{_scene, _camera};
 };

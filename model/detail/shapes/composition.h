@@ -16,7 +16,7 @@
 #pragma once
 
 #include "shape.h"
-#include "utilities.h"
+#include "../utilities.h"
 
 #include <fstream>
 #include <string>

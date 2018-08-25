@@ -15,11 +15,11 @@
 
 #pragma once
 
-#include "color.h"
-#include "filter.h"
-#include "ray.h"
 #include "shape.h"
-#include "vector.h"
+#include "../color.h"
+#include "../filter.h"
+#include "../ray.h"
+#include "../vector.h"
 
 class Ball : public Shape
 {

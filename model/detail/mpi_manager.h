@@ -15,12 +15,12 @@
 
 #pragma once
 
-#include "light_beam.h"
-#include "vector.h"
-
 #include <mpi.h>
 
 #include <string>
+
+class LightBeam;
+class Vector;
 
 enum class MPI_Order {
   QUIT,
@@ -33,23 +33,15 @@ enum class MPI_Order {
 
 class MPI_Manager
 {
+private:
+  MPI_Manager() = default;
+
 public:
   static MPI_Manager& singleton();
+  ~MPI_Manager();
 
-private:
-  MPI_Comm _comm;
-  int _size;
-  int _rank;
-  MPI_Status _status;
-
-private:
-  MPI_Manager() {}
-
-public:
   void init(int argc, char** argv);
-  void finalize();
   void iprobe(int idle_time);  
-    
 
   void recv_order (MPI_Order &i, int source=0);
   void send_order (MPI_Order  i, int dest  =0);
@@ -72,6 +64,13 @@ public:
 
   int rank() const      { return _rank; }
   int size() const      { return _size; }
+
+private:
+  MPI_Comm _comm;
+  int _size;
+  int _rank;
+  MPI_Status _status;
+  bool _started = false;
 };
 
 MPI_Manager& mpi();

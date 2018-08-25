@@ -13,7 +13,9 @@
 //  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+#include "light_beam.h"
 #include "mpi_manager.h"
+#include "vector.h"
 
 #include <unistd.h>
 
@@ -27,6 +29,12 @@ MPI_Manager& MPI_Manager::singleton()
   return mpi_manager;
 }
 
+MPI_Manager::~MPI_Manager()
+{
+  if(_started)
+    MPI_Finalize();
+}
+
 void MPI_Manager::init(int argc, char** argv)
 {
   MPI_Init(&argc,&argv);
@@ -35,11 +43,8 @@ void MPI_Manager::init(int argc, char** argv)
   
   MPI_Comm_rank(_comm,&_rank);
   MPI_Comm_size(_comm,&_size);
-}
 
-void MPI_Manager::finalize()
-{
-  MPI_Finalize();
+  _started = true;
 }
 
 void MPI_Manager::iprobe(int idle_time)

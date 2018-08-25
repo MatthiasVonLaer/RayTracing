@@ -14,16 +14,13 @@
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "controller.h"
-#include "mpi_manager.h"
-
-#include <QApplication>
 
 #include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <iterator>
 
-static void RayTraceTestScenes(const std::filesystem::path& path, QApplication& app);
+static void RayTraceTestScenes(const std::filesystem::path& path);
 static void CompareActualToExpected(const std::filesystem::path& path);
 static void CheckAllTested(const std::filesystem::path& path);
 
@@ -36,9 +33,7 @@ int main(int argc, char *argv[])
       throw std::invalid_argument(
           "No test files directory passed as input parameter.");
     }
-    mpi().init(argc,argv);
-    QApplication app(argc, argv);
-    RayTraceTestScenes(argv[1], app);
+    RayTraceTestScenes(argv[1]);
     CompareActualToExpected(argv[1]); 
     CheckAllTested(argv[1]);
   }
@@ -50,7 +45,7 @@ int main(int argc, char *argv[])
   return EXIT_SUCCESS;
 }
 
-static void RayTraceTestScenes(const std::filesystem::path& path, QApplication& app)
+static void RayTraceTestScenes(const std::filesystem::path& path)
 {
   std::filesystem::remove_all(path / "actual");
   std::filesystem::create_directory(path / "actual");
@@ -61,7 +56,7 @@ static void RayTraceTestScenes(const std::filesystem::path& path, QApplication& 
     {
       continue;
     }
-    Controller controller(app);
+    Controller controller;
     std::ifstream in(testScene.path());
     controller.parse(in);
   }

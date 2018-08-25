@@ -16,8 +16,8 @@
 #pragma once
 
 #include "ball.h"
-#include "light_beam.h"
-#include "vector.h"
+#include "../light_beam.h"
+#include "../vector.h"
 
 #include <istream>
 

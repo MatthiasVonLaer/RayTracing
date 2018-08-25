@@ -13,10 +13,12 @@
 //  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#include "controller.h"
-#include "mpi_manager.h"
-#include "slave.h"
-#include "utilities.h"
+#include "gui.h"
+
+#include <model/detail/controller.h>
+#include <model/detail/master.h>
+#include <model/detail/mpi_manager.h>
+#include <model/detail/slave.h>
 
 #include <QApplication>
 
@@ -26,37 +28,35 @@ int run(int argc, char** argv)
 {
   mpi().init(argc,argv);
 
-  if(mpi().rank() == 0) {
+  if(mpi().rank() == 0)
+  {
+    Master master;
 
+    if(argc != 2)
+    {
+      throw std::invalid_argument("Usage: raytracing_gui scene_file.");
+    }
+
+    ifstream input(argv[1]);
+    if(!input.is_open())
+    {
+      throw std::runtime_error("Can't open file " + string(argv[1]));
+    }
+
+    Controller controller;
+    controller.parse(input);
     QApplication app(argc, argv);
-    Controller controller(app);
-
-    //Piped
-    if(argc == 1) {
-      controller.parse(cin);
-    }
-    //Input file
-    else if(argc == 2) {
-      ifstream input(argv[1]);
-      if(input.is_open()) {
-        controller.parse(input);
-      }
-      else {
-        throw std::runtime_error("Can't open file " + string(argv[1]));
-      }
-    }
-    else {
-      throw std::invalid_argument("Usage: Too many arguments.");
-    }
-
+    Gui gui(controller.scene(), controller.camera());
+    gui.showMaximized();
+    app.exec();
   }
-  else {
+  else
+  {
     Slave slave;
     slave.loop();
   }
 
-  mpi().finalize();
-  return 0;
+  return EXIT_SUCCESS;
 }
 
 int main(int argc, char** argv)
@@ -68,5 +68,6 @@ int main(int argc, char** argv)
   catch (const std::exception& e)
   {
     display_error(e.what());
+    return EXIT_SUCCESS;
   }
 }

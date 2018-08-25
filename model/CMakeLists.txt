@@ -10,7 +10,6 @@ INCLUDE_DIRECTORIES(
 set(CMAKE_BUILD_TYPE Release)
 set(CMAKE_CXX_COMPILER mpic++)
 
-set(CMAKE_AUTOMOC ON)
 find_package(Qt5Widgets)
 
 add_library(raytracing_model
@@ -20,7 +19,6 @@ add_library(raytracing_model
   detail/controller.cc
   detail/display.cc
   detail/filter.cc
-  detail/gui.cc
   detail/light_beam.cc
   detail/lens.cc
   detail/math_operation.cc

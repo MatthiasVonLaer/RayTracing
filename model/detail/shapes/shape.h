@@ -15,12 +15,12 @@
 
 #pragma once
 
-#include "color.h"
-#include "filter.h"
-#include "matrix.h"
-#include "plane.h"
-#include "ray.h"
-#include "vector.h"
+#include "../color.h"
+#include "../filter.h"
+#include "../matrix.h"
+#include "../plane.h"
+#include "../ray.h"
+#include "../vector.h"
 
 #include <QImage>
 
