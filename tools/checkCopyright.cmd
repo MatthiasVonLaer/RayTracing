@@ -6,6 +6,8 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+author=$2
+year=$1
 git ls-files \
       | grep -Ev "\.gitignore|\.jpg|\.md" \
-      | xargs grep -L "Copyright.*$1.*$2"
+      | xargs grep -L "Copyright.*year.*author"

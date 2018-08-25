@@ -30,5 +30,4 @@ fi
 git ls-files \
       | xargs grep -l "Copyright.*$author" \
       | xargs grep -L "Copyright.*$year" \
-      | tee /dev/tty \
       | xargs sed -i "s/ $author/, $year $author/"
