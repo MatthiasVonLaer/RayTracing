@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.1)
 
 set(CMAKE_CXX_COMPILER mpic++)
 
-include_directories(../../model/detail)
+include_directories(../..)
 
 add_executable(raytracing_system_test main.cc)
 target_link_libraries(raytracing_system_test

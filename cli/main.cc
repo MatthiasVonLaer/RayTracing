@@ -13,11 +13,11 @@
 //  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#include "controller.h"
-#include "master.h"
-#include "mpi_manager.h"
-#include "slave.h"
-#include "utilities.h"
+#include <model/controller.h>
+#include <model/master.h>
+#include <model/mpi_manager.h>
+#include <model/slave.h>
+#include <model/utilities.h>
 
 using namespace std;
 

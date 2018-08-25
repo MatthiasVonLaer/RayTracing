@@ -15,10 +15,10 @@
 
 #include "gui.h"
 
-#include <model/detail/controller.h>
-#include <model/detail/master.h>
-#include <model/detail/mpi_manager.h>
-#include <model/detail/slave.h>
+#include <model/controller.h>
+#include <model/master.h>
+#include <model/mpi_manager.h>
+#include <model/slave.h>
 
 #include <QApplication>
 

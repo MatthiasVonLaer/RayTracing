@@ -2,11 +2,11 @@ cmake_minimum_required(VERSION 3.1)
 
 find_package(Boost 1.61.0 COMPONENTS unit_test_framework)
 
-include_directories(../../model/detail)
+include_directories(../..)
 
 add_executable(raytracing_unit_test
-    ../../model/detail/plane_test.cc
-    ../../model/detail/shapes/ball_test.cc
+    ../../model/plane_test.cc
+    ../../model/shapes/ball_test.cc
     main.cc
 )
 target_link_libraries(raytracing_unit_test
