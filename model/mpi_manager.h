@@ -59,7 +59,7 @@ public:
 
 private:
   MPI_Comm _comm;
-  int _size;
+  int _size{1};
   int _rank;
   MPI_Status _status;
   bool _started = false;

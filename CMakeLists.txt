@@ -15,5 +15,3 @@ subdirs(
   cli
   gui
 )
-set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
-set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)

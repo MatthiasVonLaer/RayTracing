@@ -8,6 +8,6 @@
 
 author=$2
 year=$1
-git ls-files \
+cd "$(dirname "$0")"/.. && git ls-files \
       | grep -Ev "\.gitignore|\.jpg|\.md" \
-      | xargs grep -L "Copyright.*year.*author"
+      | xargs grep -L "Copyright.*$year.*$author"

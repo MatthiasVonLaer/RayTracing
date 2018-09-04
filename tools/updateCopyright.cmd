@@ -17,7 +17,7 @@ then
 fi
 
 echo "Updating those files? [Y/n]"
-git ls-files \
+cd "$(dirname "$0")"/.. && git ls-files \
       | xargs grep -l "Copyright.*$author" \
       | xargs grep -L "Copyright.*$year"
 read -n 1 -r
@@ -27,7 +27,7 @@ then
   exit 1
 fi
 
-git ls-files \
+cd "$(dirname "$0")"/.. && git ls-files \
       | xargs grep -l "Copyright.*$author" \
       | xargs grep -L "Copyright.*$year" \
       | xargs sed -i "s/ $author/, $year $author/"
